@@ -1,8 +1,9 @@
 /*
     This program renders a rotating 3D wireframe cube on a 2D screen using the MicroW8 platform.
 
-    code: zbyti
-    date: 2025.04.15
+    code     : zbyti
+    date     : 2025.04.15
+    platform : MicroW8 0.4.1
 
     https://exoticorn.github.io/microw8/
     https://exoticorn.github.io/microw8/docs/
