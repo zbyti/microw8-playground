@@ -48,7 +48,7 @@ If the module exports a function called `start`, it will be called once after th
 ## Links
 
 * [MicroW8](https://exoticorn.github.io/microw8/)
-* [MicroW8 docs](https://exoticorn.github.io/microw8/docs/)
+* [MicroW8 Docs](https://exoticorn.github.io/microw8/docs/)
 * [MicroW8 GitHub repository](https://github.com/exoticorn/microw8)
 * [CurlyWASM GitHub repository](https://github.com/exoticorn/curlywas)
 * [WebAssembly](https://developer.mozilla.org/en-US/docs/WebAssembly)
