@@ -12,7 +12,7 @@ If the module exports a function called `start`, it will be called once after th
 
 ### Key Features
 
-- **Graphics Modes**: Supports text and graphics modes with.
+- **Graphics Modes**: Supports text and graphics modes.
 - **Primitive Functions**: Includes functions for drawing pixels, lines, circles, and rectangles.
 - **Sound Capabilities**: Custom soundchip for generating sound effects and music.
 - **PRNG**: Provides a good pseudo-random number generator (PRNG), namely xorshift64*, which can be initialized with a custom seed for varied random sequences.
