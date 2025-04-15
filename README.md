@@ -4,9 +4,9 @@
 
 ## About MicroW8
 
-MicroW8 loads WebAssembly modules with a maximum size of 256kb. Your module needs to export a function fn `upd()` which will be called once per frame. After calling `upd` MicroW8 will display the 320x240 8bpp framebuffer located at offset 120 in memory with the 32bpp palette located at 0x13000.
+**MicroW8** loads WebAssembly modules with a maximum size of 256KB. Your module needs to export a function fn `upd()` which will be called once per frame. After calling `upd` MicroW8 will display the 320x240 8bpp framebuffer located at offset 120 in memory with the 32bpp palette located at 0x13000.
 
-The memory has to be imported as `env` `memory` and has a maximum size of 256kb (4 pages).
+The memory has to be imported as `env` `memory` and has a maximum size of 256KB (4 pages).
 
 If the module exports a function called `start`, it will be called once after the module is loaded.
 
