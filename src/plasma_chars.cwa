@@ -44,7 +44,6 @@ global mut phaseB = 5; // Phase offset for the second sine wave, controls animat
 
 //-----------------------------------------------------------------------------
 
-
 /*
     Logs a value to the console (STDOUT) with a prefix for debugging purposes
 
