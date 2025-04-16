@@ -5,7 +5,7 @@
     and renders to the 40x30 character grid with intensity-based colors.
 
     code     : zbyti (conversion & optimizations)
-    original : https://github.com/tebe6502/Mad-Pascal/blob/pas2js/samples/a8/demoeffects/plasma_2.pas
+    original : https://github.com/tebe6502/Mad-Pascal/blob/origin/samples/a8/demoeffects/plasma_2.pas
     date     : 2025.04.16
     platform : MicroW8 0.4.1
 */
