@@ -73,7 +73,7 @@ fn console(prefix: i32, log: i32) {
 */
 fn fillSin(adr: i32, size: i32) {
     let i = 0;
-    let f = 180.00 / size as f32 * RAD;
+    let inline f = 180.00 / size as f32 * RAD;
     loop i {
         (adr+i)?0 = (sin(f * i as f32) * 255.0) as i32;
         branch_if (i +:= 1) < size: i;

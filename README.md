@@ -38,7 +38,7 @@ If the module exports a function called `start`, it will be called once after th
 ## Exercises Live Examples
 
 1. [3D Wireframe Cube](https://exoticorn.github.io/microw8/v0.4.1/#AgEvmenHYIQ0/luYmvahuJDSK7ewWqC0bIlfA751sc6jBxGyedrH0fsQzSunqaGuAcJ8V6HiVrLGcd6DIQPMCza2VXzXiRTCtvt8L2gcMYNfNacvOupltyuXRztjlV69KL1APBHQy3NFg9k7XhY0XSfVAZF+sK/q6EGBeIYsZRipfIatJ2huh+QWbG5z72EmaMOFAbFYAAMbDPM5wUkdjS6GkGmj0uB9JDBAljdxJC6n/dfjCVbXG6HIxthhJpuzWjCKxyAxXsMPeq/mTKxEkWDSweAlW9jjMPTucnJyEVVgdTd/1kGhYtU1OIpLeFJi5fgCD8OLerrvBbvpeWmRfCRVqk/hBRJKe0c9M/D/2u7b1s1K8HPnUTigwvTtU17YQcup2JvCJ/vlH+o=) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/cube_wireframe.cwa)\]
-2. [Plasma (chars)](https://exoticorn.github.io/microw8/v0.4.1/#AiXPjP71zh3Hfri6k6on2Bb+YaXc7IfJ4FyP4/XT0sBd8abscZJx8fVIQVxesNUN4FmYNg/r1Vi+lyOwqlyw+PQDKSjBl4dDSNAi8AAgiV/m2nnv8V23FGlHUnZ5b3VkhCYGoOXKC8eIa1F4QBmgjMwZD7/IeO7YdkG2s7ptyvpV8c9P7nnkxAljz6Ixx/zroQCAC5CW2lSNRWf6VnIz7OC0L7JbGDv7lILMcH2kssc0dq7YUai0BcM02t0tXdlaphGwl10xW2NM97eqOFxZPRYNsaKJsnoaR82vcGFEjF9VSLg64/SIqtwb7OAT35wJjLg+dfb6gJIbwAoKiJl4KvK2Yi9WvD8d) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_chars.cwa)\]
+2. [Plasma (chars)](https://exoticorn.github.io/microw8/v0.4.1/#AgF/iaR5p9nXsZHHwQXdhY0Xmeg9eA05SSIDDLvc1zq7a5ctQby0eLztGDNPm53Fk5eSR3PzqpV9mdbfcFBvuaDRSzqPvmMcHbv/IVhlHwhfThvLMcJSE6A9tIrNaMjYEdbzgKJm28rpVk85fwDmW350DD0ERfctOGaBjW4nmJ6lOG/0ypMF5ZarvBWqcM4oH2aJUtHo+fOVFqTr1gDxuaA0khofcTF7uKvnRveV5goyNUxma+NKSukTWz6g0ZFQDz6OSe37zdq4wpdDHymLs97gH3ivAHP8b7Qr95Lobvo4O3nlRvuHEIvOPpyKVFqeDLQkuJOjYbYgCISJfbd5MLzTHA==) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_chars.cwa)\]
 
 ## Best demos
 
