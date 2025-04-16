@@ -1,0 +1,82 @@
+/*
+    Plasma effect
+
+    Combines sine waves to create a 2D pixel pattern with intensity-based colors.
+
+    code     : zbyti
+    date     : 2025.04.17
+    platform : MicroW8 0.4.1
+*/
+
+include "../include/microw8-api.cwa"
+
+//-----------------------------------------------------------------------------
+// Constants defining memory layout, screen dimensions, and effect parameters
+//-----------------------------------------------------------------------------
+
+const MEM_END           = 0x40000;
+const BASE_COLOR        = 0xF0;
+
+const PI                = 3.14159265;
+const RAD               = PI / 180.0;
+
+const SCR_X             = 320;
+const SCR_Y             = 240;
+
+const SIN_TABLE_SIZE    = 512;
+const ROW_BUFFER        = MEM_END - SCR_X; // Memory address for precomputed row buffer
+
+//-----------------------------------------------------------------------------
+// Global variables to track animation state
+//-----------------------------------------------------------------------------
+
+global mut phaseA = 0; // Phase offset for the first sine wave, controls animation
+global mut phaseB = 0; // Phase offset for the second sine wave, controls animation
+
+//-------------------------------------
+
+/*
+    Update function called each frame to render the plasma effect
+*/
+export fn upd() {
+    let pA = phaseA; // Local copy of phaseA to avoid modifying global during frame
+    let pB = phaseB; // Local copy of phaseB for the same reason
+
+    let i = 0;
+    loop i {
+        // Wrap phase values to stay within sine table bounds using bitwise AND
+        pA &= SIN_TABLE_SIZE - 1;
+        pB &= SIN_TABLE_SIZE - 1;
+
+        // Combine waves (scaled to 0-180) and store in row buffer
+        let inline f = 180.00 / SIN_TABLE_SIZE as f32 * RAD;
+        i?ROW_BUFFER = ((sin(f * pA as f32) * sin(f * pB as f32) * cos(f * pB as f32)) * 180.0) as i32;
+
+        pA += 3; // Shift phase for first sine wave (controls wave speed)
+        pB += 7; // Shift phase for second sine wave (different speed for variety)
+
+        branch_if (i +:= 1) < SCR_X: i;
+    }
+
+    i = 0;
+    loop i {
+        let j = 0;
+        loop j {
+            // Combine wave values from row buffer for current position
+            // Use bitwise AND to clamp to 0-255, then scale to 0-15 for color index
+            let inline c = ((j?ROW_BUFFER + i?ROW_BUFFER) & 255) >> 4;
+
+            // Set pixel based on intensity (base color + scaled value)
+            setPixel(j, i, BASE_COLOR + c);
+
+            branch_if (j +:= 1) < SCR_X: j;
+        }
+        branch_if (i +:= 1) < SCR_Y: i;
+    }
+
+    // Update global phase offsets for the next frame to animate the pattern
+    phaseA += 1; // Increment phaseA to shift the pattern (+/- speed move)
+    phaseB -= 1; // Increment phaseB to shift the pattern (+/- right/left move)
+}
+
+//-----------------------------------------------------------------------------
