@@ -1,5 +1,5 @@
 /*
-    Plasma effect (chars) no LUT table for sine
+    Plasma effect (chars) no LUT for sine
 
     Combines sine waves to create a 2D pattern, maps to custom characters,
     and renders to the 40x30 character grid with intensity-based colors.
