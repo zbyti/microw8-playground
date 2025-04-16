@@ -38,6 +38,7 @@ If the module exports a function called `start`, it will be called once after th
 ## Exercises Live Examples
 
 1. [3D Wireframe Cube](https://exoticorn.github.io/microw8/v0.4.1/#AgEvmenHYIQ0/luYmvahuJDSK7ewWqC0bIlfA751sc6jBxGyedrH0fsQzSunqaGuAcJ8V6HiVrLGcd6DIQPMCza2VXzXiRTCtvt8L2gcMYNfNacvOupltyuXRztjlV69KL1APBHQy3NFg9k7XhY0XSfVAZF+sK/q6EGBeIYsZRipfIatJ2huh+QWbG5z72EmaMOFAbFYAAMbDPM5wUkdjS6GkGmj0uB9JDBAljdxJC6n/dfjCVbXG6HIxthhJpuzWjCKxyAxXsMPeq/mTKxEkWDSweAlW9jjMPTucnJyEVVgdTd/1kGhYtU1OIpLeFJi5fgCD8OLerrvBbvpeWmRfCRVqk/hBRJKe0c9M/D/2u7b1s1K8HPnUTigwvTtU17YQcup2JvCJ/vlH+o=)
+2. [Plasma (chars)](https://exoticorn.github.io/microw8/v0.4.1/#AiXPjP71zh3Hfri6k6on2Bb+YaXc7IfJ4FyP4/XT0sBd8abscZJx8fVIQVxesNUN4FmYNg/r1Vi+lyOwqlyw+PQDKSjBl4dDSNAi8AAgiV/m2nnv8V23FGlHUnZ5b3VkhCYGoOXKC8eIa1F4QBmgjMwZD7/IeO7YdkG2s7ptyvpV8c9P7nnkxAljz6Ixx/zroQCAC5CW2lSNRWf6VnIz7OC0L7JbGDv7lILMcH2kssc0dq7YUai0BcM02t0tXdlaphGwl10xW2NM97eqOFxZPRYNsaKJsnoaR82vcGFEjF9VSLg64/SIqtwb7OAT35wJjLg+dfb6gJIbwAoKiJl4KvK2Yi9WvD8d)
 
 ## Best demos
 
