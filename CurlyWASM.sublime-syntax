@@ -68,6 +68,10 @@ contexts:
     - match: (->)
       scope: keyword.operator.arrow.curlywasm
 
+    # Assignment operators
+    - match: ':='
+      scope: keyword.operator.assignment.curlywasm
+
     # Arithmetic operators
     - match: (\+|-|\*|/|%|#/|#%)
       scope: keyword.operator.arithmetic.curlywasm
