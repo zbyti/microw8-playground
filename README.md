@@ -93,7 +93,6 @@ If the module exports a function called `start`, it will be called once after th
 #### **5. Assign the syntax to files**
 1. Open a `.cwa` file.  
 2. Click the current syntax name in the **bottom-right corner** (e.g., "Plain Text").  
-3. Select:  
-   **`Open all with current extension as... → CurlyWASM`**.  
-   *(If "CurlyWASM" doesn’t appear, revisit Step 2–4.)*
+3. Select: **`Open all with current extension as... → CurlyWASM`**.
+
 ---
