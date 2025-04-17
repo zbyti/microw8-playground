@@ -32,6 +32,8 @@ const SCR_H             = SCR_Y / 8; // 30
 const SCR_SIZE          = SCR_X * SCR_Y;
 
 const SIN_TABLE_SIZE    = 128;                      // Number of entries in the sine lookup table
+const SIN_TABLE_MASK    = SIN_TABLE_SIZE - 1;
+
 const SIN_TABLE         = MEM_END - SIN_TABLE_SIZE; // Memory address for sine table
 const ROW_BUFFER        = SIN_TABLE - SCR_W;        // Memory address for precomputed row buffer
 
@@ -102,8 +104,8 @@ export fn upd() {
     let i = 0;
     loop i {
         // Wrap phase values to stay within sine table bounds using bitwise AND
-        pA &= SIN_TABLE_SIZE - 1;
-        pB &= SIN_TABLE_SIZE - 1;
+        pA &= SIN_TABLE_MASK;
+        pB &= SIN_TABLE_MASK;
 
         // Combine two sine waves and store in row buffer
         i?ROW_BUFFER = pA?SIN_TABLE + pB?SIN_TABLE;

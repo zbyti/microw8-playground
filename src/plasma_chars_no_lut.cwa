@@ -31,8 +31,10 @@ const SCR_W             = SCR_X / 8; // 40
 const SCR_H             = SCR_Y / 8; // 30
 const SCR_SIZE          = SCR_X * SCR_Y;
 
-const SIN_TABLE_SIZE    = 128;
-const ROW_BUFFER        = MEM_END - SCR_W;  // Memory address for precomputed row buffer
+const SIN_TABLE_SIZE    = 128.0;
+const SIN_TABLE_MASK    = 128 - 1;
+const ROW_BUFFER        = MEM_END - SCR_W; // Memory address for precomputed row buffer
+const factor            = 180.00 / SIN_TABLE_SIZE * RAD;
 
 //-----------------------------------------------------------------------------
 // Global variables to track animation state
@@ -50,15 +52,16 @@ export fn upd() {
     let pA = phaseA; // Local copy of phaseA to avoid modifying global during frame
     let pB = phaseB; // Local copy of phaseB for the same reason
 
+    // Combine two sine waves (scaled to 0-255) and store in row buffer
+    let inline formula = (sin(factor * pA as f32) * 255.0) as i32 + (sin(factor * pB as f32) * 255.0) as i32;
+
     let i = 0;
     loop i {
         // Wrap phase values to stay within sine table bounds using bitwise AND
-        pA &= SIN_TABLE_SIZE - 1;
-        pB &= SIN_TABLE_SIZE - 1;
+        pA &= SIN_TABLE_MASK;
+        pB &= SIN_TABLE_MASK;
 
-        // Combine two sine waves (scaled to 0-255) and store in row buffer
-        let inline f = 180.00 / SIN_TABLE_SIZE as f32 * RAD;
-        i?ROW_BUFFER = (sin(f * pA as f32) * 255.0) as i32 + (sin(f * pB as f32) * 255.0) as i32;
+        i?ROW_BUFFER = formula;
 
         pA += 3; // Shift phase for first sine wave (controls wave speed)
         pB += 7; // Shift phase for second sine wave (different speed for variety)
