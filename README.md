@@ -104,7 +104,7 @@ If the module exports a function called `start`, it will be called once after th
   - Verify the file:  
     - Correct **name/extension** (`.sublime-syntax`).  
     - Valid **YAML formatting** (no tabs, use spaces).  
-  - Check the **console** (`Ctrl + ``) for errors.  
+  - Check the **console** (`Ctrl + ~`) for errors.  
 
 - **Partial highlighting?**  
   Debug with:  
