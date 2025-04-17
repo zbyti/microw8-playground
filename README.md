@@ -42,7 +42,9 @@ If the module exports a function called `start`, it will be called once after th
 ) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_chars.cwa)\]
 3. [Plasma (chars) without LUT for sine](https://exoticorn.github.io/microw8/v0.4.1/#AjHnyuOJvwzFAi17m1Wb0Dzflox+KPvif2AAel/JMsHWqIc1KCmnHOnktl4nB7EtCwJNSYFB6q1X9cgsjKicDwcyJyUa7IdmVXazMtwFsNJZvYWS5nNHb8mkkxwn8GpM6+/9iIHLT+09a/WtdPFNT4OS1tSCdIELreaKbngHNZjcJcy+uys+4aQn/oBlTenaUr7dkssUqOf4s5naAj60Nv3kR5zVW/IvIISMQPsqalMFe+X3W5kPJ9BTqEbW8d4M6+Y=) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_chars_no_lut.cwa)\]
 
-4. [Plasma (sizecoding)](https://exoticorn.github.io/microw8/v0.4.1/#AgRfwyD42RDl5f3KVLZZbihhRlTzvpi6x5iiUuDH6l4MfabYlwjxGKogclynAPxG/cprkeiidc0DNC2R4lDMUbcUvQiT5MN3jeFDNa0kl46fELcPdW7Mf2mI8f7rUgZYNr0OgTiWc2is8KcbPw==) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_sizecoding.cwa)\]
+4. [Plasma 1 (sizecoding)](https://exoticorn.github.io/microw8/v0.4.1/#AgRfwyD42RDl5f3KVLZZbihhRlTzvpi6x5iiUuDH6l4MfabYlwjxGKogclynAPxG/cprkeiidc0DNC2R4lDMUbcUvQiT5MN3jeFDNa0kl46fELcPdW7Mf2mI8f7rUgZYNr0OgTiWc2is8KcbPw==) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_sizecoding_1.cwa)\]
+
+5. [Plasma 2 (sizecoding)](https://exoticorn.github.io/microw8/v0.4.1/#AiXn5Zv5sAB8Jb9zSVP+RiomZbkpxOPfULXCgAfRz83hB63XJmi486XQms7kgICo8JXe6e6w1ss3FjzhN6ghO2V9IqlTJKKhKW8w6oBE9ShKD1Q96rTxWZja8b76ryWVdUcRVhk09NMD5h7q6u2CMIN7jw==) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_sizecoding_2.cwa)\]
 
 ## Best demos
 

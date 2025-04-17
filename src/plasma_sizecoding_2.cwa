@@ -1,0 +1,25 @@
+include "../include/microw8-api.cwa"                            // Only pattern without transformation
+                                                                //
+const SCR_X      = 320;             // Screen width in pixels   // const SCR_X      = 320;
+const SCR_Y      = 240;             // Screen height in pixels  // const SCR_Y      = 240;
+const SCR_SIZE   = SCR_X * SCR_Y;   // Screen size in bytes     // const SCR_SIZE   = SCR_X * SCR_Y;
+                                                                //
+const BASE_COLOR = 0xF0;                                        // const BASE_COLOR = 0xF0;
+                                                                //
+global mut p1: f32 = 0.0;                                       // global mut p: f32 = 0.0;
+global mut p2: f32 = 0.0;                                       //
+                                                                // export fn upd() {
+export fn upd() {                                               //     let i = 0;
+  let i = 0;                                                    //     loop i {
+  loop i {                                                      //         let x = i % SCR_X;
+    let lazy x = i % SCR_X;                                     //         let y = i / SCR_X;
+    let lazy y = i / SCR_X;                                     //         let inline f = (sin(0.02 * x as f32 + p) + sin(0.03 * y as f32 + p)) * 7.0;
+    let inline s1 = sin(0.02 * x as f32 + p1);                  //         setPixel(x, y, BASE_COLOR + f as i32);
+    let inline s2 = sin(0.03 * y as f32 + p2);                  //         branch_if (i +:= 1) < SCR_SIZE: i;
+    let inline s3 = sin(0.01 * (x + y) as f32 + p1 + p2);       //     }
+    setPixel(x, y, BASE_COLOR + ((s1 + s2 + s3) * 4.0) as i32); //     p += 0.1;
+    branch_if (i +:= 1) < SCR_SIZE: i;                          // }
+  }
+  p1 += 0.05;
+  p2 += 0.07;
+}
