@@ -66,6 +66,75 @@ If the module exports a function called `start`, it will be called once after th
 * [Effects listing and demos references](https://democyclopedia.wordpress.com/2015/10/25/liste-des-effets/)
 * [Fantasy consoles](https://github.com/paladin-t/fantasy)
 
+## uw8 dev tool
+
+```
+uw8 run [<options>] <file>
+
+Runs <file> which can be a binary WebAssembly module, an `.uw8` cart, a wat (WebAssembly text format) source file or a CurlyWas source file.
+
+Options:
+
+-b, --browser           : Run in browser instead of using native runtime
+-t, --timeout FRAMES    : Sets the timeout in frames (1/60s)
+-w, --watch             : Reloads the given file every time it changes on disk.
+-p, --pack              : Pack the file into an .uw8 cart before running it and print the resulting size.
+-u, --uncompressed      : Use the uncompressed uw8 format for packing.
+-l LEVEL, --level LEVEL : Compression level (0-9). Higher compression levels are really slow.
+-o FILE, --output FILE  : Write the loaded and optionally packed cart back to disk.
+
+when using the native runtime:
+
+-m, --no-audio          : Disable audio, also reduces cpu load a bit
+--no-gpu                : Force old cpu-only window code
+--filter FILTER         : Select an upscale filter at startup
+--fullscreen            : Start in fullscreen mode
+
+Note that the cpu-only window does not support fullscreen nor upscale filters.
+
+Unless --no-gpu is given, uw8 will first try to open a gpu accelerated window, falling back to the old cpu-only window if that fails.
+Therefore you should rarely need to manually pass --no-gpu. If you prefer the old pixel doubling look to the now default crt filter,
+you can just pass "--filter nearest" or "--filter 1".
+
+The upscale filter options are:
+1, nearest              : Anti-aliased nearest filter
+2, fast_crt             : Very simple, cheap crt filter, not very good below a window size of 960x720
+3, ss_crt               : Super sampled crt filter, a little more demanding on the GPU but scales well to smaller window sizes
+4, chromatic_crt        : Variant of fast_crt with a slight offset of the three color dots of a pixel, still pretty cheap
+5, auto_crt (default)   : ss_crt below 960x720, chromatic_crt otherwise
+
+You can switch the upscale filter at any time using the keys 1-5. You can toggle fullscreen with F.
+
+uw8 pack [<options>] <infile> <outfile>
+
+Packs the WebAssembly module or text file, or CurlyWas source file into a .uw8 cart.
+
+Options:
+
+-u, --uncompressed      : Use the uncompressed uw8 format for packing.
+-l LEVEL, --level LEVEL : Compression level (0-9). Higher compression levels are really slow.
+
+
+uw8 unpack <infile> <outfile>
+
+Unpacks a MicroW8 module into a standard WebAssembly module.
+
+
+uw8 compile [<options>] <infile> <outfile>
+
+Compiles a CurlyWas source file to a standard WebAssembly module. Most useful together with
+the --debug option to get a module that works well in the Chrome debugger.
+
+Options:
+
+-d, --debug             : Generate a name section to help debugging
+
+
+uw8 filter-exports <infile> <outfile>
+
+Reads a binary WebAssembly module, removes all exports not used by the MicroW8 platform + everything that is unreachable without those exports and writes the resulting module to <outfile>.
+```
+
 ## How to add custom Syntax Highlighting to [Sublime Text](https://www.sublimetext.com/)
 
 #### **1. Create or obtain a [Syntax Definition File](https://github.com/zbyti/microw8-playground/blob/master/CurlyWASM.sublime-syntax)**
