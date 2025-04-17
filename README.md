@@ -66,7 +66,7 @@ If the module exports a function called `start`, it will be called once after th
 * [Effects listing and demos references](https://democyclopedia.wordpress.com/2015/10/25/liste-des-effets/)
 * [Fantasy consoles](https://github.com/paladin-t/fantasy)
 
-## **How to Add Custom Syntax Highlighting to Sublime Text**
+## **How to add custom Syntax Highlighting to Sublime Text**
 
 #### **1. Create or Obtain a Syntax Definition File**
 - The file must be in **`.sublime-syntax`** format (YAML-based).  
