@@ -65,3 +65,51 @@ If the module exports a function called `start`, it will be called once after th
 * [Awesome Demoscene](https://github.com/psykon/awesome-demoscene)
 * [Effects listing and demos references](https://democyclopedia.wordpress.com/2015/10/25/liste-des-effets/)
 * [Fantasy consoles](https://github.com/paladin-t/fantasy)
+
+## **How to Add Custom Syntax Highlighting to Sublime Text**
+
+#### **1. Create or Obtain a Syntax Definition File**
+- The file must be in **`.sublime-syntax`** format (YAML-based).  
+- Example: `CurlyWASM.sublime-syntax` (for your `.cwa` files).
+
+#### **2. Locate the Correct Folder**
+- Open Sublime Text.
+- Go to:  
+  **`Preferences → Browse Packages`**  
+  This opens the `Packages` folder where syntax files belong.
+
+#### **3. Place the File**
+- Copy your `.sublime-syntax` file into:  
+  - **`Packages/User/`** (recommended for custom syntaxes).  
+  - *Alternatively*, create a subfolder like `Packages/CurlyWASM/` for organization.
+
+#### **4. Refresh Sublime Text**
+- **Method 1**: Restart Sublime Text.  
+- **Method 2**: Use the console (**`Ctrl + ~`**) and run:  
+  ```python
+  sublime.run_command("refresh_package_list")
+  ```
+
+#### **5. Assign the Syntax to Files**
+1. Open a `.cwa` file.  
+2. Click the current syntax name in the **bottom-right corner** (e.g., "Plain Text").  
+3. Select:  
+   **`Open all with current extension as... → CurlyWASM`**.  
+   *(If "CurlyWASM" doesn’t appear, revisit Step 2–4.)*
+
+---
+
+### **Troubleshooting**
+- **Syntax not appearing?**  
+  - Verify the file:  
+    - Correct **name/extension** (`.sublime-syntax`).  
+    - Valid **YAML formatting** (no tabs, use spaces).  
+  - Check the **console** (`Ctrl + ``) for errors.  
+
+- **Partial highlighting?**  
+  Debug with:  
+  1. **`Tools → Developer → Show Scope Name`**.  
+  2. Hover over text to see active scopes.  
+
+- **Still stuck?**  
+  Edit the `.sublime-syntax` file and re-save it. Sublime Text auto-reloads syntax files.
