@@ -77,7 +77,7 @@ contexts:
       scope: keyword.operator.arrow.curlywasm
 
     # Assignment operators
-    - match: ':='
+    - match: (=|:=|\+=|-=|\*=|/=|%=|&=|\|=|\^=|#/=)
       scope: keyword.operator.assignment.curlywasm
 
     # Arithmetic operators
