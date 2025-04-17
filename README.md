@@ -96,22 +96,4 @@ If the module exports a function called `start`, it will be called once after th
 3. Select:  
    **`Open all with current extension as... → CurlyWASM`**.  
    *(If "CurlyWASM" doesn’t appear, revisit Step 2–4.)*
-
----
-
-### **Troubleshooting**
-- **Syntax not appearing?**  
-  - Verify the file:  
-    - Correct **name/extension** (`.sublime-syntax`).  
-    - Valid **YAML formatting** (no tabs, use spaces).  
-  - Check the **console** (`Ctrl + ~`) for errors.  
-
-- **Partial highlighting?**  
-  Debug with:  
-  1. **`Tools → Developer → Show Scope Name`**.  
-  2. Hover over text to see active scopes.  
-
-- **Still stuck?**  
-  Edit the `.sublime-syntax` file and re-save it. Sublime Text auto-reloads syntax files.
-
 ---
