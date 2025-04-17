@@ -4,7 +4,11 @@
 # http://www.sublimetext.com/docs/syntax.html
 # created by: zbyti & various AI, Rust like color scheme
 # ==========================================================
-
+# For best results, use with Rust-themed color schemes like:
+# - "RustEnhanced"
+# - "Atomized"
+# - "Solarized Rust"
+# ==========================================================
 name: CurlyWASM
 file_extensions: [cwa]
 scope: source.curlywasm
@@ -13,10 +17,10 @@ contexts:
   main:
     # Comments
     - match: /\*
-      scope: punctuation.definition.comment.begin.curlywasm
+      scope: comment.block.curlywasm
       push: block_comment
     - match: //
-      scope: punctuation.definition.comment.line.curlywasm
+      scope: comment.line.curlywasm
       push: line_comment
 
     # Module system
@@ -40,6 +44,10 @@ contexts:
     # Type conversion
     - match: \b(as)\b
       scope: keyword.operator.type.curlywasm
+
+    # WASM memory access operators
+    - match: \b(load|load8_s|store)\b
+      scope: keyword.operator.memory.curlywasm
 
     # Data blocks - Match 'data {' together and push context
     - match: \b(data)\s*(\{)
@@ -109,7 +117,7 @@ contexts:
 
     # Constants (Upper case convention) - Using a different scope
     - match: \b([A-Z_][A-Z0-9_]*)\b
-      scope: entity.name.constant.curlywasm
+      scope: constant.other.curlywasm
 
     # Variables (Lower case convention)
     - match: \b([a-z_][a-zA-Z0-9_]*)\b
@@ -188,7 +196,10 @@ contexts:
     - match: \,
       scope: punctuation.separator.curlywasm
     # Potentially allow comments inside data blocks
-    - include: main # Or selectively include comment rules if needed
+    # - include: main # Or selectively include comment rules if needed
+    - include: literals
+    - include: block_comment
+    - include: line_comment
 
   # Reusable patterns for literals (used via include)
   literals:
