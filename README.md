@@ -66,31 +66,31 @@ If the module exports a function called `start`, it will be called once after th
 * [Effects listing and demos references](https://democyclopedia.wordpress.com/2015/10/25/liste-des-effets/)
 * [Fantasy consoles](https://github.com/paladin-t/fantasy)
 
-## **How to add custom Syntax Highlighting to Sublime Text**
+## How to add custom Syntax Highlighting to [Sublime Text](https://www.sublimetext.com/)
 
 #### **1. Create or obtain a [Syntax Definition File](https://github.com/zbyti/microw8-playground/blob/master/CurlyWASM.sublime-syntax)**
 - The file must be in **`.sublime-syntax`** format (YAML-based).  
 - Example: `CurlyWASM.sublime-syntax` (for your `.cwa` files).
 
-#### **2. Locate the correct folder**
+#### 2. Locate the correct folder
 - Open Sublime Text.
 - Go to:  
   **`Preferences → Browse Packages`**  
   This opens the `Packages` folder where syntax files belong.
 
-#### **3. Place the file**
+#### 3. Place the file
 - Copy your `.sublime-syntax` file into:  
   - **`Packages/User/`** (recommended for custom syntaxes).  
   - *Alternatively*, create a subfolder like `Packages/CurlyWASM/` for organization.
 
-#### **4. Refresh Sublime Text**
+#### 4. Refresh Sublime Text
 - **Method 1**: Restart Sublime Text.  
 - **Method 2**: Use the console (**`Ctrl + ~`**) and run:  
   ```python
   sublime.run_command("refresh_package_list")
   ```
 
-#### **5. Assign the syntax to files**
+#### 5. Assign the syntax to files
 1. Open a `.cwa` file.  
 2. Click the current syntax name in the **bottom-right corner** (e.g., "Plain Text").  
 3. Select: **`Open all with current extension as... → CurlyWASM`**.
