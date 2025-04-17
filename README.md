@@ -43,6 +43,8 @@ If the module exports a function called `start`, it will be called once after th
 
 4. [Plasma](https://exoticorn.github.io/microw8/v0.4.1/#An/T/ZaqI8ZiecFHOAXaoozMwaBkzMHY4VCOBV70hv3Cq5dsE9MqVIAAhpeM2yjcjLmYn8A4Fbv5YwmmrOYUuDWSdGwIvcwBHALBvdByPsF1FE76dyT0g8RewfAgn4GNaawHmHDjW0+aY0SdLyFvftsnZFSfmr6ILKZt0G4HVN2kxHi/+eNtjNbj8G3JaILIte0BZw3aULI=) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma.cwa)\]
 
+5. [Plasma (sizecoding)](https://exoticorn.github.io/microw8/v0.4.1/#Ainnyoi30jRBHpgYVwj78PkVNOMGsaGqTpfs0Q+LDMmmGhQXnoMKgvMsUuoanfW+JdjW8S6hMA134qCGuHDhp+oocRCHZMmUKM+dU/LrqMaF0yUe/ZoUvwY1Jv7oh8TH/tCRjgdmgqcJ3V3VeaJrhw==) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_sizecoding.cwa)\]
+
 ## Best demos
 
 * [Ilmenit / Agenda - Urban Drift](https://exoticorn.github.io/microw8/v0.4.1/#AgEvierdnH17S/tTxm32eLToCJJFBNvK89T9q89dmLJGAIGAYeKq8LKYQ67hit19z4h+1zGX+oVGbKMC4p2H0lpiZnHdsG3Sa82XWZPpNHYxlKUah+SvTbC0H2ZCjJEniiDDrLBd+Kf/9uVzQ7DEJ+uFQTPWHxWtAkIujmb3wJhu3htxSiunTEl0KkOaaXu86bbY0cjjbyPWrx38rfx/3crZpI+bL7BQURAB/lRygznyPRnZHYMbCKEwcZqzQcjTiyLtMNSdBSpJKTyb8HTgvHpxPOP9ByJfmhj4Z+7ttUEUzDGrgVb07c6cM6CPgmTRCApZeBQEuC8C60ovHJwjJuEGFLt/rk5MvZc5j5sEb/eFra4bsbPclClVYj3WG3dUN3Jq8aEl/GoO+xlV+GGOBGFefkKfwmJ4ZlCLMDTLJVuUW7pj2aDDfjJsw4Vr95Wc3iNYZCu2SYDsWlZm6wkxK1ALSglp0N1QWsN9hghnnsgygKuZT3Wchi/QgJSX0AFP00MZ+p3uQCi3pLAKzoUVKJnHjDi66wLKOkGBpQ2Kt0LGToH0DVDrdFXvYT2O/zqX9eo+aGVMQyoUs7+0T4D6LCuwTNiG5viz+gkI/8kKcxUJhLTC/llAn4oM4o9EtHpQQOrjpQtMRFCU9Nr29hHiMHVSIlJuMbODMN61Jd+4vSQ=) \[[source](https://github.com/ilmenit/sizecoding/blob/main/urban_drift/urban_drift.cwa)\]
