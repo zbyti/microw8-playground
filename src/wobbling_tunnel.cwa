@@ -1,0 +1,52 @@
+/*
+    Wobbling tunnel
+
+    code     : zbyti & Gem (reimplementation & modification)
+    original : https://github.com/exoticorn/microw8/blob/master/examples/curlywas/tunnel.cwa
+    date     : 2025.04.18
+    platform : MicroW8 0.4.1
+
+    https://benryves.com/tutorials/tunnel/
+*/
+
+include "../include/microw8-api.cwa"
+
+// Constants defining the visual properties and screen dimensions
+const BASE_COLOR     = 0x30;          // Base color offset for pixel coloring
+const PI             = 3.14159265;    // Mathematical constant π
+const RAD            = PI / 180.0;    // Conversion factor from degrees to radians (unused)
+const SCR_X          = 320;           // Screen width in pixels
+const SCR_Y          = 240;           // Screen height in pixels
+const CENTER_X       = SCR_X / 2;     // X-coordinate of the screen center (160)
+const CENTER_Y       = SCR_Y / 2;     // Y-coordinate of the screen center (120)
+const SCR_SIZE       = SCR_X * SCR_Y; // Total screen size in pixels (76800)
+const ROTATION_SPEED = 63.0;          // Speed of tunnel animation (higher = faster)
+const DENSITY_FACTOR = 512.0;         // Density of angular texture (higher = more detailed)
+const EPSILON        = 0.0001;        // Small value to avoid division by zero in sqrt and atan2
+
+// Constants for animated center
+const CENTER_ANIM_RADIUS = 90.0; // Radius of the center's movement circle
+const CENTER_ANIM_SPEED  = 1.5;  // Speed of the center's movement
+
+// Main update function called each frame to render the tunnel effect
+export fn upd() {
+    let i = 0;                                                           // Pixel index for iterating over the screen
+    loop i {                                                             // Loop over all pixels
+        let inline t = time() * ROTATION_SPEED;                          // Animation time scaled for rotation speed
+
+        // Calculate animated center coordinates
+        let inline centerX_anim = CENTER_X as f32 + sin(time() * CENTER_ANIM_SPEED) * CENTER_ANIM_RADIUS / 0.75;
+        let inline centerY_anim = CENTER_Y as f32 + cos(time() * CENTER_ANIM_SPEED) * CENTER_ANIM_RADIUS / 2.5;
+
+        // Calculate pixel coordinates relative to the animated center
+        let lazy x = (i % SCR_X) as f32 - centerX_anim + EPSILON;                  // X-coordinate relative to animated center
+        let lazy y = (i / SCR_X) as f32 - centerY_anim + sin(x * 0.15 + t) * 1.25; // Y-coordinate relative to animated center, with wave
+
+        let inline d = 0x1a00_f / sqrt(x*x + y*y);                       // Inverse distance for tunnel depth
+        let inline u = ((atan2(x, y) * DENSITY_FACTOR / PI) + t) as i32; // Angular coordinate with time offset
+        let inline v = (d + t * 2.0) as i32;                             // Depth coordinate with time offset
+        let inline c = ((v ^ u) & 255) >> 4;                             // Color value (0..15) using XOR texture
+        i?FRAMEBUFFER = BASE_COLOR + c;                                  // Write color to framebuffer with base color offset
+        branch_if (i +:= 1) < SCR_SIZE: i;                               // Increment index and continue if within screen bounds
+    }
+}
