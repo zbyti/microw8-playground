@@ -49,6 +49,14 @@ contexts:
     - match: \b(load|load8_s|store)\b
       scope: keyword.operator.memory.curlywasm
 
+    # API functions
+    - match: \b(sin|cos|tan|asin|acos|atan|atan2|pow|log|fmod|random|randomf|randomSeed|cls|setPixel|getPixel|hline|rectangle|circle|line|time|isButtonPressed|isButtonTriggered|printChar|printString|printInt|setTextColor|setBackgroundColor|setCursorPosition|rectangleOutline|circleOutline|exp|playNote|sndGes|blitSprite|grabSprite)\b
+      scope: support.function.curlywasm
+
+    # Built-in functions
+    - match: \b(sqrt|min|max|ceil|floor|trunc|nearest|abs|copysign|select|trunc_sat_f32_u)\b
+      scope: support.function.curlywasm
+
     # Data blocks - Match 'data {' together and push context
     - match: \b(data)\s*(\{)
       captures:
