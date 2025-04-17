@@ -43,7 +43,7 @@ If the module exports a function called `start`, it will be called once after th
 
 4. [Plasma](https://exoticorn.github.io/microw8/v0.4.1/#An/T/ZaqI8ZiecFHOAXaoozMwaBkzMHY4VCOBV70hv3Cq5dsE9MqVIAAhpeM2yjcjLmYn8A4Fbv5YwmmrOYUuDWSdGwIvcwBHALBvdByPsF1FE76dyT0g8RewfAgn4GNaawHmHDjW0+aY0SdLyFvftsnZFSfmr6ILKZt0G4HVN2kxHi/+eNtjNbj8G3JaILIte0BZw3aULI=) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma.cwa)\]
 
-5. [Plasma (sizecoding)](https://exoticorn.github.io/microw8/v0.4.1/#Ainnyoi30jRBHpgYVwj78PkVNOMGsaGqTpfs0Q+LDMmmGhQXnoMKgvMsUuoanfW+JdjW8S6hMA134qCGuHDhp+oocRCHZMmUKM+dU/LrqMaF0yUe/ZoUvwY1Jv7oh8TH/tCRjgdmgqcJ3V3VeaJrhw==) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_sizecoding.cwa)\]
+5. [Plasma (sizecoding)](https://exoticorn.github.io/microw8/v0.4.1/#AgRfwyD42RDl5f3KVLZZbihhRlTzvpi6x5iiUuDH6l4MfabYlwjxGKogclynAPxG/cprkeiidc0DNC2R4lDMUbcUvQiT5MN3jeFDNa0kl46fELcPdW7Mf2mI8f7rUgZYNr0OgTiWc2is8KcbPw==) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/plasma_sizecoding.cwa)\]
 
 ## Best demos
 

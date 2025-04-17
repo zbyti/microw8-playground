@@ -31,9 +31,9 @@ export fn upd() {
         let lazy y = i / SCR_X; // Y-coordinate (row)
 
         // Compute three sine waves with different frequencies and phases
-        let inline val1 = sin(RAD * 2.25 as f32 * (x + phaseX) as f32);     // Wave along X-axis
-        let inline val2 = sin(RAD * 3.25 as f32 * (y + phaseY) as f32);     // Wave along Y-axis
-        let inline val3 = sin(RAD * 1.25 as f32 * (x + y + phaseX) as f32); // Diagonal wave
+        let inline val1 = sin(RAD * 2.25 * (x + phaseX) as f32);     // Wave along X-axis
+        let inline val2 = sin(RAD * 3.25 * (y + phaseY) as f32);     // Wave along Y-axis
+        let inline val3 = sin(RAD * 1.25 * (x + y + phaseX) as f32); // Diagonal wave
 
         // Combine waves, scale to color range, and convert to integer
         let inline c = BASE_COLOR + ((val1 + val2 + val3) * 4.75) as i32;
