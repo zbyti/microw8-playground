@@ -28,13 +28,13 @@
         },
         {
             "trigger": "let",
-            "contents": "let ${1:variable}${2:: ${3:type}} = ${4:value};",
+            "contents": "let ${1:variable} = ${2:value};",
             "details": "let variable[: type] = value;",
             "kind": "keyword"
         },
         {
             "trigger": "const",
-            "contents": "const ${1:name}${2:: ${3:type}} = ${4:value};",
+            "contents": "const ${1:name} = ${2:value};",
             "details": "const name[: type] = value;",
             "kind": "keyword"
         },
@@ -82,7 +82,7 @@
         },
         {
             "trigger": "data",
-            "contents": "data ${1:address} {\n\t${2:content}\n}",
+            "contents": "data ${1:address} {\n\t${2:type}(\n\t\t${3:values}\n\t)\n}",
             "details": "data address { content }",
             "kind": "keyword"
         },
