@@ -18,10 +18,10 @@
 */
 fn printFps() {
     let fps = (1000.0 / (TIME_MS!0 - (TIME_MS-4)!0) as f32) as i32;
-    (TIME_MS-4)!0 = TIME_MS!0;          // Update the frame time base from the hardware register
+    (TIME_MS-4)!0 = TIME_MS!0; // Update the frame time base from the hardware register
 
-    setBackgroundColor(0x64); // Example background color, use a constant like COLOR_GRAY
-    setTextColor(15);         // Example text color, use a constant like COLOR_WHITE
+    setBackgroundColor(COLOR_DARK_GREY);
+    setTextColor(COLOR_WHITE);
     setCursorPosition(0, 0);
     printInt(fps);
 
