@@ -92,8 +92,8 @@ fn console(prefix: i32, v: i32) {
 	The speed depends on the CPU/GPU chips, etc.
 */
 fn printFps() {
-    let fps = (1000.0 / (0x40!0 - 0x3C!0) as f32) as i32;
-    0x3C!0 = 0x40!0;          // Update the frame time base from the hardware register
+    let fps = (1000.0 / (TIME_MS!0 - (TIME_MS-4)!0) as f32) as i32;
+    (TIME_MS-4)!0 = TIME_MS!0;          // Update the frame time base from the hardware register
 
     setBackgroundColor(0x64); // Example background color, use a constant like COLOR_GRAY
     setTextColor(15);         // Example text color, use a constant like COLOR_WHITE
