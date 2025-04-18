@@ -140,3 +140,81 @@ fn fillSin(adr: i32, size: i32) {
 // -- Group: Input Functions --
 
 // ---------------------------------------------------------------------------
+
+/*
+    // example function
+    fn clz(v: i32) -> i32 {
+        i32.clz(v)
+    }
+*/
+
+// ===========================================================================
+
+/*
+
+=== WASM functions ===
+
+i32.load8_s(base_address);         // offset = 0
+i32.load8_s(base_address, offset); // offset > 0
+
+// Count Leading Zeros for i32. Returns the number of zero bits before the most significant one bit.
+i32.clz(value);
+
+// Count Trailing Zeros for i32. Returns the number of zero bits after the least significant one bit.
+i32.ctz(value);
+
+// Population Count for i32. Returns the number of set bits (bits with value 1).
+i32.popcnt(value);
+
+// Byte Swap for i32. Reverses the byte order of the value.
+i32.bswap(value);
+
+// Truncate float to unsigned integer, saturating. Converts f32 to i32 unsigned, clamping to the i32 unsigned range.
+i32.trunc_sat_f32_u(value);
+
+// Truncate float to signed integer, saturating. Converts f32 to i32 signed, clamping to the i32 signed range.
+i32.trunc_sat_f32_s(value);
+
+// Load 8-bit signed integer from memory. Reads one byte and sign-extends it to i32.
+i32.load8_s(base_address, offset);
+
+// Load 8-bit unsigned integer from memory. Reads one byte and zero-extends it to i32. (Equivalent to base_address?offset)
+i32.load8_u(base_address, offset);
+
+// Load 16-bit signed integer from memory. Reads two bytes and sign-extends to i32.
+i32.load16_s(base_address, offset);
+
+// Load 16-bit unsigned integer from memory. Reads two bytes and zero-extends to i32.
+i32.load16_u(base_address, offset);
+
+// Load 32-bit signed integer from memory. (Equivalent to base_address!offset)
+i32.load(base_address, offset); // Added i32 load for completeness
+
+// Load 64-bit integer from memory. Reads eight bytes into an i64.
+i64.load(base_address, offset);
+
+// Load 32-bit float from memory. (Equivalent to base_address$offset)
+f32.load(base_address, offset); // Added f32 load for completeness
+
+// Load 64-bit float from memory. Reads eight bytes into an f64.
+f64.load(base_address, offset);
+
+// Store 8-bit integer to memory. Writes the lower 8 bits of the value. (Equivalent to base_address?offset = value)
+i32.store8(value_to_store, base_address, offset);
+
+// Store 16-bit integer to memory. Writes the lower 16 bits of the value.
+i32.store16(value_to_store, base_address, offset);
+
+// Store 32-bit integer to memory. Writes the 32-bit value. (Equivalent to base_address!offset = value)
+i32.store(value_to_store, base_address, offset); // Added i32 store for completeness
+
+// Store 64-bit integer to memory. Writes the 64-bit value.
+i64.store(value_to_store, base_address, offset);
+
+// Store 32-bit float to memory. Writes the 32-bit float value. (Equivalent to base_address$offset = value)
+f32.store(value_to_store, base_address, offset); // Added f32 store for completeness
+
+// Store 64-bit float to memory. Writes the 64-bit float value.
+f64.store(value_to_store, base_address, offset);
+
+*/
