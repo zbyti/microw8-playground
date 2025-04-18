@@ -1,0 +1,140 @@
+// ===========================================================================
+// common.cwa - Common utility constants, variables, and functions for MicroW8
+// source code depends on microw8-api.cwa
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+
+// ===========================================================================
+// -- Section: Constants --
+// ===========================================================================
+
+// Mathematical constants
+const PI             = 3.14159265;    // Mathematical constant π
+const RAD            = PI / 180.0;    // Conversion factor from degrees to radians
+
+// Screen constants
+const SCR_X          = 320;           // Screen width in pixels
+const SCR_Y          = 240;           // Screen height in pixels
+const SCR_W          = SCR_X / 8;     // Screen width in chars (40)
+const SCR_H          = SCR_Y / 8;     // Screen height in chars (30)
+const CENTER_X       = SCR_X / 2;     // X-coordinate of the screen center (160)
+const CENTER_Y       = SCR_Y / 2;     // Y-coordinate of the screen center (120)
+const SCR_SIZE       = SCR_X * SCR_Y; // Total screen size in pixels (76800)
+
+// Memory / System constants
+const MEM_END        = 0x40000;       // End of available memory (example, check Microw8 documentation)
+const CUSTOM_FONT    = FONT + 0x100;  // Example address for a custom font
+
+// Color constants (default palette)
+const COLOR_BLACK       	= 0x00; // Black        	row 0, column 0
+const COLOR_DARK_BLUE   	= 0x17; // Dark Blue  		row 1, column 7
+const COLOR_DARK_PURPLE 	= 0x27; // Dark Purple  	row 2, column 7
+const COLOR_CYAN        	= 0x37; // Cyan  			row 3, column 7
+const COLOR_BRIGHT_RED  	= 0x47; // Bright Red  		row 4, column 7
+const COLOR_MAGENTA     	= 0x57; // Magenta  		row 5, column 7
+const COLOR_ORANGE      	= 0x58; // Orange  			row 5, column 8
+const COLOR_BRIGHT_YELLOW 	= 0x67; // Bright Yellow  	row 6, column 7
+const COLOR_MEDIUM_GREY 	= 0x78; // Medium Grey  	row 7, column 8
+const COLOR_LIGHT_GREY  	= 0x7C; // Light Grey  		row 7, column C
+const COLOR_WHITE       	= 0xF8; // White  			row F, column 8
+const COLOR_BRIGHT_GREEN 	= 0x87; // Bright Green  	row 8, column 7
+const COLOR_BROWN       	= 0xD4; // Brown  			row D, column 4
+const COLOR_DARK_GREY   	= 0xE1; // Dark Grey  		row E, column 1
+
+
+// ===========================================================================
+// -- Section: Global Variables --
+// ===========================================================================
+
+// ===========================================================================
+// -- Section: Helper Functions --
+// ===========================================================================
+
+// -- Group: Debugging/System Functions --
+
+// ---------------------------------------------------------------------------
+
+/*
+    Logs a value to the console (STDOUT) with a 4-character prefix for debugging.
+
+    Args:
+      prefix : An i32 representing a 4-character identifier (e.g., 'DBG:')
+      log    : The integer value to log (i32)
+
+    Prints to the system console and returns output focus to the screen.
+*/
+fn console(prefix: i32, v: i32) {
+    printChar('\6');    // Switch output to console
+    printChar(prefix);  // Print the prefix
+    printInt(v);      // Print the integer value
+    printChar('\n\4');  // Print newline and switch back to screen output
+}
+
+// ---------------------------------------------------------------------------
+
+/*
+    Prints the current number of frames per second (FPS) and the count of missed
+    frames if the frame rate drops below 60 FPS.
+
+    Memory usage: 0x3C-0x3F 4 bytes.
+
+    This matche configuration setting: uw8 run demo.cwa -t 1
+
+    If the start or update function runs longer than this it is forcibly interupted
+    and execution of the cart is stopped.
+
+	-t 1 means we need to render at least 60 frames (1/60s)
+	-t 2 means we need to render at least 30 frames (1/30s)
+
+	The default value is 30 (0.5s
+*/
+fn printFps() {
+    let fps = (1000.0 / (0x40!0 - 0x3C!0) as f32) as i32;
+    0x3C!0 = 0x40!0;          // Update the frame time base from the hardware register
+
+    setBackgroundColor(0x64); // Example background color, use a constant like COLOR_GRAY
+    setTextColor(15);         // Example text color, use a constant like COLOR_WHITE
+    setCursorPosition(0, 0);
+    printInt(fps);
+
+    if fps < 60 {
+        printChar(0xe3);
+        printInt(60 - fps);
+    }
+}
+
+// ---------------------------------------------------------------------------
+
+// -- Group: Math Functions --
+
+// ---------------------------------------------------------------------------
+
+/*
+    Fills a sine table with precomputed values for fast lookups.
+    The table covers half a period of the sine function (from 0 to approximately PI radians).
+
+    Args:
+      adr  : Memory address where the sine table is stored
+      size : Number of entries in the table
+
+    Computes: "size" length values scaled to 0-255
+*/
+fn fillSin(adr: i32, size: i32) {
+    let i = 0;
+    let inline f = 180.00 / size as f32 * RAD;
+    loop i {
+        (adr+i)?0 = (sin(f * i as f32) * 255.0) as i32;
+        branch_if (i +:= 1) < size: i;
+    }
+}
+
+// ---------------------------------------------------------------------------
+
+// -- Group: Graphics Functions --
+
+// ---------------------------------------------------------------------------
+
+// -- Group: Input Functions --
+
+// ---------------------------------------------------------------------------
