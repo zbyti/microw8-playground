@@ -27,18 +27,18 @@ const MEM_END        = 0x40000;       // End of available memory (example, check
 const CUSTOM_FONT    = FONT + 0x100;  // Example address for a custom font
 
 // Color constants (default palette)
-const COLOR_BLACK           = 0x00;   // Black          row 0, column 0
+const COLOR_BLACK           = 0x00;   // Black              row 0, column 0
 const COLOR_DARK_BLUE       = 0x17;   // Dark Blue          row 1, column 7
-const COLOR_DARK_PURPLE     = 0x27;   // Dark Purple    row 2, column 7
-const COLOR_CYAN            = 0x37;   // Cyan           row 3, column 7
+const COLOR_DARK_PURPLE     = 0x27;   // Dark Purple        row 2, column 7
+const COLOR_CYAN            = 0x37;   // Cyan               row 3, column 7
 const COLOR_BRIGHT_RED      = 0x47;   // Bright Red         row 4, column 7
-const COLOR_MAGENTA         = 0x57;   // Magenta        row 5, column 7
+const COLOR_MAGENTA         = 0x57;   // Magenta            row 5, column 7
 const COLOR_ORANGE          = 0x58;   // Orange             row 5, column 8
 const COLOR_BRIGHT_YELLOW   = 0x67;   // Bright Yellow      row 6, column 7
-const COLOR_MEDIUM_GREY     = 0x78;   // Medium Grey    row 7, column 8
+const COLOR_MEDIUM_GREY     = 0x78;   // Medium Grey        row 7, column 8
 const COLOR_LIGHT_GREY      = 0x7C;   // Light Grey         row 7, column C
 const COLOR_WHITE           = 0xF8;   // White              row F, column 8
-const COLOR_BRIGHT_GREEN    = 0x87;   // Bright Green   row 8, column 7
+const COLOR_BRIGHT_GREEN    = 0x87;   // Bright Green       row 8, column 7
 const COLOR_BROWN           = 0xD4;   // Brown              row D, column 4
 const COLOR_DARK_GREY       = 0xE1;   // Dark Grey          row E, column 1
 
