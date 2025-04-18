@@ -1,0 +1,32 @@
+/*
+    Prints the current number of frames per second (FPS) and the count of missed
+    frames if the frame rate drops below 60 FPS.
+
+    Memory usage: 0x3C-0x3F 4 bytes.
+
+    This matche configuration setting: uw8 run demo.cwa -t 1
+
+    If the start or update function runs longer than this it is forcibly interupted
+    and execution of the cart is stopped.
+
+	-t 1 means we need to render at least 60 frames (1/60s)
+	-t 2 means we need to render at least 30 frames (1/30s)
+
+	The default value is 30 (0.5s)
+
+	The speed depends on the CPU/GPU chips, etc.
+*/
+fn printFps() {
+    let fps = (1000.0 / (TIME_MS!0 - (TIME_MS-4)!0) as f32) as i32;
+    (TIME_MS-4)!0 = TIME_MS!0;          // Update the frame time base from the hardware register
+
+    setBackgroundColor(0x64); // Example background color, use a constant like COLOR_GRAY
+    setTextColor(15);         // Example text color, use a constant like COLOR_WHITE
+    setCursorPosition(0, 0);
+    printInt(fps);
+
+    if fps < 60 {
+        printChar(0xe3);
+        printInt(60 - fps);
+    }
+}

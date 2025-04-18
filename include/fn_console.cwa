@@ -1,0 +1,15 @@
+/*
+    Logs a value to the console (STDOUT) with a 4-character prefix for debugging.
+
+    Args:
+      prefix : An i32 representing a 4-character identifier (e.g., 'DBG:')
+      log    : The integer value to log (i32)
+
+    Prints to the system console and returns output focus to the screen.
+*/
+fn console(prefix: i32, v: i32) {
+    printChar('\6');    // Switch output to console
+    printChar(prefix);  // Print the prefix
+    printInt(v);      // Print the integer value
+    printChar('\n\4');  // Print newline and switch back to screen output
+}

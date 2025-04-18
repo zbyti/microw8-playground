@@ -1,0 +1,18 @@
+/*
+    Fills a sine table with precomputed values for fast lookups.
+    The table covers half a period of the sine function (from 0 to approximately PI radians).
+
+    Args:
+      adr  : Memory address where the sine table is stored
+      size : Number of entries in the table
+
+    Computes: "size" length values scaled to 0-255
+*/
+fn fillSin(adr: i32, size: i32) {
+    let i = 0;
+    let inline f = 180.00 / size as f32 * RAD;
+    loop i {
+        (adr+i)?0 = (sin(f * i as f32) * 255.0) as i32;
+        branch_if (i +:= 1) < size: i;
+    }
+}

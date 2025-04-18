@@ -1,9 +1,9 @@
 // ===========================================================================
-// common.cwa - Common utility constants, variables, and functions for MicroW8
-// source code depends on microw8-api.cwa
+// common.cwa - Common constants, variables, APIs
 // ===========================================================================
 
-// ---------------------------------------------------------------------------
+// MicroW8 APIs
+include "../include/microw8-api.cwa"
 
 // ===========================================================================
 // -- Section: Constants --
@@ -42,104 +42,13 @@ const COLOR_BRIGHT_GREEN 	= 0x87; // Bright Green  	row 8, column 7
 const COLOR_BROWN       	= 0xD4; // Brown  			row D, column 4
 const COLOR_DARK_GREY   	= 0xE1; // Dark Grey  		row E, column 1
 
-
 // ===========================================================================
 // -- Section: Global Variables --
 // ===========================================================================
 
 // ===========================================================================
-// -- Section: Helper Functions --
+// -- Section: Snippets --
 // ===========================================================================
-
-// -- Group: Debugging/System Functions --
-
-// ---------------------------------------------------------------------------
-
-/*
-    Logs a value to the console (STDOUT) with a 4-character prefix for debugging.
-
-    Args:
-      prefix : An i32 representing a 4-character identifier (e.g., 'DBG:')
-      log    : The integer value to log (i32)
-
-    Prints to the system console and returns output focus to the screen.
-*/
-fn console(prefix: i32, v: i32) {
-    printChar('\6');    // Switch output to console
-    printChar(prefix);  // Print the prefix
-    printInt(v);      // Print the integer value
-    printChar('\n\4');  // Print newline and switch back to screen output
-}
-
-// ---------------------------------------------------------------------------
-
-/*
-    Prints the current number of frames per second (FPS) and the count of missed
-    frames if the frame rate drops below 60 FPS.
-
-    Memory usage: 0x3C-0x3F 4 bytes.
-
-    This matche configuration setting: uw8 run demo.cwa -t 1
-
-    If the start or update function runs longer than this it is forcibly interupted
-    and execution of the cart is stopped.
-
-	-t 1 means we need to render at least 60 frames (1/60s)
-	-t 2 means we need to render at least 30 frames (1/30s)
-
-	The default value is 30 (0.5s)
-
-	The speed depends on the CPU/GPU chips, etc.
-*/
-fn printFps() {
-    let fps = (1000.0 / (TIME_MS!0 - (TIME_MS-4)!0) as f32) as i32;
-    (TIME_MS-4)!0 = TIME_MS!0;          // Update the frame time base from the hardware register
-
-    setBackgroundColor(0x64); // Example background color, use a constant like COLOR_GRAY
-    setTextColor(15);         // Example text color, use a constant like COLOR_WHITE
-    setCursorPosition(0, 0);
-    printInt(fps);
-
-    if fps < 60 {
-        printChar(0xe3);
-        printInt(60 - fps);
-    }
-}
-
-// ---------------------------------------------------------------------------
-
-// -- Group: Math Functions --
-
-// ---------------------------------------------------------------------------
-
-/*
-    Fills a sine table with precomputed values for fast lookups.
-    The table covers half a period of the sine function (from 0 to approximately PI radians).
-
-    Args:
-      adr  : Memory address where the sine table is stored
-      size : Number of entries in the table
-
-    Computes: "size" length values scaled to 0-255
-*/
-fn fillSin(adr: i32, size: i32) {
-    let i = 0;
-    let inline f = 180.00 / size as f32 * RAD;
-    loop i {
-        (adr+i)?0 = (sin(f * i as f32) * 255.0) as i32;
-        branch_if (i +:= 1) < size: i;
-    }
-}
-
-// ---------------------------------------------------------------------------
-
-// -- Group: Graphics Functions --
-
-// ---------------------------------------------------------------------------
-
-// -- Group: Input Functions --
-
-// ---------------------------------------------------------------------------
 
 /*
     // example function
@@ -149,72 +58,3 @@ fn fillSin(adr: i32, size: i32) {
 */
 
 // ===========================================================================
-
-/*
-
-=== WASM functions ===
-
-i32.load8_s(base_address);         // offset = 0
-i32.load8_s(base_address, offset); // offset > 0
-
-// Count Leading Zeros for i32. Returns the number of zero bits before the most significant one bit.
-i32.clz(value);
-
-// Count Trailing Zeros for i32. Returns the number of zero bits after the least significant one bit.
-i32.ctz(value);
-
-// Population Count for i32. Returns the number of set bits (bits with value 1).
-i32.popcnt(value);
-
-// Byte Swap for i32. Reverses the byte order of the value.
-i32.bswap(value);
-
-// Truncate float to unsigned integer, saturating. Converts f32 to i32 unsigned, clamping to the i32 unsigned range.
-i32.trunc_sat_f32_u(value);
-
-// Truncate float to signed integer, saturating. Converts f32 to i32 signed, clamping to the i32 signed range.
-i32.trunc_sat_f32_s(value);
-
-// Load 8-bit signed integer from memory. Reads one byte and sign-extends it to i32.
-i32.load8_s(base_address, offset);
-
-// Load 8-bit unsigned integer from memory. Reads one byte and zero-extends it to i32. (Equivalent to base_address?offset)
-i32.load8_u(base_address, offset);
-
-// Load 16-bit signed integer from memory. Reads two bytes and sign-extends to i32.
-i32.load16_s(base_address, offset);
-
-// Load 16-bit unsigned integer from memory. Reads two bytes and zero-extends to i32.
-i32.load16_u(base_address, offset);
-
-// Load 32-bit signed integer from memory. (Equivalent to base_address!offset)
-i32.load(base_address, offset); // Added i32 load for completeness
-
-// Load 64-bit integer from memory. Reads eight bytes into an i64.
-i64.load(base_address, offset);
-
-// Load 32-bit float from memory. (Equivalent to base_address$offset)
-f32.load(base_address, offset); // Added f32 load for completeness
-
-// Load 64-bit float from memory. Reads eight bytes into an f64.
-f64.load(base_address, offset);
-
-// Store 8-bit integer to memory. Writes the lower 8 bits of the value. (Equivalent to base_address?offset = value)
-i32.store8(value_to_store, base_address, offset);
-
-// Store 16-bit integer to memory. Writes the lower 16 bits of the value.
-i32.store16(value_to_store, base_address, offset);
-
-// Store 32-bit integer to memory. Writes the 32-bit value. (Equivalent to base_address!offset = value)
-i32.store(value_to_store, base_address, offset); // Added i32 store for completeness
-
-// Store 64-bit integer to memory. Writes the 64-bit value.
-i64.store(value_to_store, base_address, offset);
-
-// Store 32-bit float to memory. Writes the 32-bit float value. (Equivalent to base_address$offset = value)
-f32.store(value_to_store, base_address, offset); // Added f32 store for completeness
-
-// Store 64-bit float to memory. Writes the 64-bit float value.
-f64.store(value_to_store, base_address, offset);
-
-*/
