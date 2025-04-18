@@ -104,12 +104,6 @@
             "details": "Inline variable modifier",
             "kind": "storage.modifier"
         },
-        {
-            "trigger": "break",
-            "contents": "break;",
-            "details": "Break from block or loop",
-            "kind": "keyword"
-        },
 
         // Operators
         {
