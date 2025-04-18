@@ -9,12 +9,12 @@
     If the start or update function runs longer than this it is forcibly interupted
     and execution of the cart is stopped.
 
-	-t 1 means we need to render at least 60 frames (1/60s)
-	-t 2 means we need to render at least 30 frames (1/30s)
+    -t 1 means we need to render at least 60 frames (1/60s)
+    -t 2 means we need to render at least 30 frames (1/30s)
 
-	The default value is 30 (0.5s)
+    The default value is 30 (0.5s)
 
-	The speed depends on the CPU/GPU chips, etc.
+    The speed depends on the CPU/GPU chips, etc.
 */
 fn printFps() {
     let fps = (1000.0 / (TIME_MS!0 - (TIME_MS-4)!0) as f32) as i32;
