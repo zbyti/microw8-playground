@@ -47,17 +47,27 @@ CurlyWASM (based on WASM MVP) supports four basic types:
 * **Integers:** Decimal or hexadecimal (e.g., `123`, `-7878`, `0xf00`). * **Floating-point numbers:** Decimal (e.g., `0.464`, `3.141`, `-10.0`). They can also be written with an `_f` suffix (e.g., `10_f`, `0x0a_f`) to explicitly specify they are `f32` literals. * **Character literals:** Single characters in single quotes (e.g., `'A'`). Can contain up to 4 characters, interpreted as a little-endian i32.
 #### 2.4. Variables and Constants
 
-* **Global variables:** Declared outside functions using `global`. Must be mutable (`mut`) and have an initial value.     ```curlywasm
-    global mut myGlobal: i32 = 0;     ```
-* **Global constants:** Declared outside functions using `const`. The value must be a constant expression.     ```curlywasm
+* **Global variables:** Declared outside functions using `global`. Must be mutable (`mut`) and have an initial value.
+
+```curlywasm
+    global mut myGlobal: i32 = 0;
+```
+
+* **Global constants:** Declared outside functions using `const`. The value must be a constant expression.
+```curlywasm
     const SCREEN_SIZE = 320 * 240;
-    const PI = 3.14159265;     ```
-    **Important:** Global constants cannot be declared inside functions. You cannot use the `as` operator for type casting within the expression used for *declaring* a constant (`const`). However, the `as` operator is allowed and commonly used in other code contexts, outside of `const` declarations. * **Local variables:** Declared inside functions using `let`. They are always mutable, and the type is inferred during initialization.     ```curlywasm
+    const PI = 3.14159265;
+```
+    **Important:** Global constants cannot be declared inside functions. You cannot use the `as` operator for type casting within the expression used for *declaring* a constant (`const`). However, the `as` operator is allowed and commonly used in other code contexts, outside of `const` declarations. * **Local variables:** Declared inside functions using `let`. They are always mutable, and the type is inferred during initialization.
+```curlywasm
     fn myFunction() {
       let counter: i32; // Declaration       let name = 'smok'; // Declaration and initialization (type inferred as i32, 4 bytes = 4 chars)       let distance = 100 as f32; // Using 'as' in an expression is correct     }
-    ```
-* **Local variable modifiers (`inline`, `lazy`):** Optimize code size by changing when the expression is evaluated.     ```curlywasm
-    let inline row = calculateRow(y); // Calculated each time 'row' is used, like a macro     let lazy column = calculateColumn(x); // Calculated once, on the first use of 'column' (often uses local.tee)     ```
+```
+
+* **Local variable modifiers (`inline`, `lazy`):** Optimize code size by changing when the expression is evaluated.
+```curlywasm
+    let inline row = calculateRow(y); // Calculated each time 'row' is used, like a macro     let lazy column = calculateColumn(x); // Calculated once, on the first use of 'column' (often uses local.tee)
+```
 
 #### 2.5. Operators and Expressions
 
@@ -66,13 +76,14 @@ CurlyWASM uses infix notation for operators:
 #### 2.6. Functions
 
 Functions are declared with the `fn` keyword. The body is a block `{}`.
-* **Implicit return:** The last expression in a function block is automatically returned. The `return` keyword is not used (it doesn't exist). Functions without a return value (or returning the empty type `()`) end with a semicolon-terminated statement or an empty block. * **Parameters:** A list of `name: type` in parentheses. * **Return type:** Optionally specified after `->`.     ```curlywasm
+* **Implicit return:** The last expression in a function block is automatically returned. The `return` keyword is not used (it doesn't exist). Functions without a return value (or returning the empty type `()`) end with a semicolon-terminated statement or an empty block. * **Parameters:** A list of `name: type` in parentheses. * **Return type:** Optionally specified after `->`.
+```curlywasm
     fn add(a: i32, b: i32) -> i32 {
       a + b // Returned value (no semicolon)     }
 
     export fn drawSomething() {
       cls(0); // Statement ends with a semicolon, no return     }
-    ```
+```
 
 #### 2.7. Control Flow
 
@@ -81,23 +92,28 @@ CurlyWASM supports WASM's structured control flow instructions:
 #### 2.8. Memory (Load/Store) and Direct Access
 
 MicroW8 memory is linear, addresses are byte-based, starting from address 0. The total memory size is 256 KB.
-* **Direct read:** CurlyWASM provides the syntax `base?offset` (read byte), `base!offset` (read 32-bit `i32` word), and `base$offset` (read 32-bit `f32` float). `base` is an `i32` expression (base address), and `offset` is an `i32` constant (offset from the base address). This syntax is preferred in loops processing large amounts of data (like the framebuffer) due to minimal overhead and generation of efficient WASM `load` instructions.     ```curlywasm
+* **Direct read:** CurlyWASM provides the syntax `base?offset` (read byte), `base!offset` (read 32-bit `i32` word), and `base$offset` (read 32-bit `f32` float). `base` is an `i32` expression (base address), and `offset` is an `i32` constant (offset from the base address). This syntax is preferred in loops processing large amounts of data (like the framebuffer) due to minimal overhead and generation of efficient WASM `load` instructions.
+```curlywasm
     // Read pixel color (byte) directly from the framebuffer
     let pixel_offset = y * 320 + x;     let color = (FRAMEBUFFER + pixel_offset)?0; // Read byte at address FRAMEBUFFER + pixel_offset + 0
     // Read time in ms (i32 word) from hardware register
-    let time_ms = (TIME_MS)!0; // Read word at address TIME_MS + 0     ```
-* **Direct write:** Similar to reading, we use the syntax `base?offset = value`, `base!offset = value`, `base$offset = value`.     ```curlywasm
+    let time_ms = (TIME_MS)!0; // Read word at address TIME_MS + 0
+```
+* **Direct write:** Similar to reading, we use the syntax `base?offset = value`, `base!offset = value`, `base$offset = value`.
+```curlywasm
     // Write pixel color (byte) directly to the framebuffer
     let pixel_offset = y * 320 + x;     (FRAMEBUFFER + pixel_offset)?0 = 15; // Write byte at address FRAMEBUFFER + pixel_offset + 0
     // Write i32 value (e.g., new TIME_MS value if we want to modify the counter)
-    (TIME_MS)!0 = new_time_ms; // Write i32 word at address TIME_MS + 0     ```
+    (TIME_MS)!0 = new_time_ms; // Write i32 word at address TIME_MS + 0
+```
 * **Alignment:** Operations on 32-bit words (`!`, `$`, `i32.load`, `f32.load`, `i32.store`, `f32.store`) require the effective memory address (base + offset) to be aligned to 4 bytes (i.e., divisible by 4). Operations on bytes (`?`, `i32.load8_u/s`, `i32.store8`) do not have such requirements. Keep this in mind when designing data structures in memory. * **Intrinsics:** You can also directly use WASM instruction names for memory operations, e.g., `i32.load8_u(address, offset)`, `i32.store(value, address, offset)`. The `base?offset` etc. syntax is syntactic sugar for these instructions with an offset of 0.
 #### 2.9. Data Sections (`data`)
 
 Data sections are used to initialize memory areas at module startup. Data defined in them is loaded to a specific address in the console's RAM.
 ```curlywasm
 data 0x14000 { // Address in memory, e.g., start of USER_MEM   i8(10, 20, 30) // Block of bytes. Values separated by commas.   i32(0x12345678) // Block of 32-bit words.   f32(3.14) // Block of 32-bit floats.   "Text\0" // Null-terminated string.   file("my_data.bin") // Content of an external binary file. }
-// Important: Place data blocks of different types (i8(...), i32(...), "...", file(...)) one after another within the data { ... } section, WITHOUT COMMAS between the blocks. ```
+// Important: Place data blocks of different types (i8(...), i32(...), "...", file(...)) one after another within the data { ... } section, WITHOUT COMMAS between the blocks.
+```
 
 ### 3. MicroW8 API
 
@@ -110,8 +126,10 @@ Screen: 320x240, 8 bpp (8 bits per pixel, index into the palette). Functions tak
 
 Gamepad: Virtual gamepad with D-Pad and 4 buttons (A, B, X, Y). Button states are mapped to keyboard keys (e.g., Up -> Arrow-Up, A -> Z). Button states can be checked using API functions or by directly reading the bitfield in memory at address `GAMEPAD` (0x44).
 * `isButtonPressed(btn: i32) -> i32`: Returns a non-zero value if the button with index `btn` is currently pressed. * `isButtonTriggered(btn: i32) -> i32`: Returns a non-zero value if the button with index `btn` was pressed in this frame (event). * **Example of direct reading of button states from memory:**
-    The gamepad state (`GAMEPAD`, 0x44) is a 32-bit word (i32), where each bit corresponds to one button. It can be read using the `!` operator:     ```curlywasm
-    let gamepad_state = (GAMEPAD)!0;     let is_button_a_pressed = (gamepad_state >> BUTTON_A) & 1; // Check bit for button A     let is_button_up_pressed = (gamepad_state >> BUTTON_UP) & 1; // Check bit for button Up     ```
+    The gamepad state (`GAMEPAD`, 0x44) is a 32-bit word (i32), where each bit corresponds to one button. It can be read using the `!` operator:
+```curlywasm
+    let gamepad_state = (GAMEPAD)!0;     let is_button_a_pressed = (gamepad_state >> BUTTON_A) & 1; // Check bit for button A     let is_button_up_pressed = (gamepad_state >> BUTTON_UP) & 1; // Check bit for button Up
+```
     Button indices are defined as constants (BUTTON_UP, BUTTON_DOWN, etc.). Direct reading is often faster and generates smaller code than multiple calls to `isButtonPressed` if checking several buttons.
 #### 3.3. Screen and Text
 
@@ -121,13 +139,15 @@ Text printing uses the built-in font (address `FONT`, 0x13400), which can also b
 
 MicroW8 can generate sound in two ways: through its own `export fn snd(sampleIndex: i32) -> f32` function (more advanced, low-level) or through the built-in `sndGes` synthesizer, controlled by 32 bytes of memory starting at address 0x50.
 * `playNote(channel: i32, note: i32)`: A convenient API function to trigger notes (1-127, 69=A4) on one of 4 channels (0-3). Note 0 stops sound on the channel, 128-255 triggers attack and release without sustain. This function modifies the corresponding bytes in the `sndGes` registers (0x50-0x70). * `sndGes(sampleIndex: i32) -> f32`: Function implementing a 4-channel synthesizer controlled by registers in memory 0x50-0x70. If you don't define your own `snd()` function, MicroW8 will call `sndGes` twice per sample (left and right channel) at 44100 Hz, copying 32 bytes from address 0x50 from the main thread's memory to the sound memory after each `upd()` call. * **Direct control of the `sndGes` synthesizer:**
-    Full control over sound is achieved by directly modifying the 32 bytes starting at address 0x50. For example, to set the wave type (square=0, saw=1, triangle=2, noise=3) and note on channel 0, you can write the bytes:     ```curlywasm
+    Full control over sound is achieved by directly modifying the 32 bytes starting at address 0x50. For example, to set the wave type (square=0, saw=1, triangle=2, noise=3) and note on channel 0, you can write the bytes:
+```curlywasm
     // Set wave type (bits 7-6) and note on flag (bit 0) on channel 0
     // Address 0x50 + channel offset (0*6) + CTRL register offset (0) = 0x50
     let wave_type = 2; // Triangle     let note_on_flag = 1;     (0x50)?0 = (wave_type << 6) | note_on_flag;
     // Set note (69=A4) on channel 0
     // Address 0x50 + channel offset (0*6) + NOTE register offset (3) = 0x53
-    (0x53)?0 = 69;     ```
+    (0x53)?0 = 69;
+```
     A detailed description of the `sndGes` registers can be found in the `microw8-api.txt` documentation.
 #### 3.5. Math Functions
 
@@ -167,7 +187,8 @@ The `uw8` tool is your main companion when working with MicroW8. It supports:
 
 Sizecoding on MicroW8 involves minimizing the size of the generated WASM module. CurlyWASM supports this through:
 
-* **Low-level WASM instructions:** CurlyWASM compiles close to WASM instructions, giving the programmer significant control. * **`let inline`/`lazy` modifiers:** Allow control over when and how local variable values are calculated, affecting code size and performance.     * `let lazy name = expression;`: Expression calculated only once, on first use. Can save code size if the value is used multiple times, but only in one execution path.     * `let inline name = expression;`: Expression is inserted at the point of use, like a macro. Can increase code size but eliminates overhead associated with local variables. Useful for dynamic values that need recalculation in each iteration. * **`:=` operator:** As discussed in section 2.5, crucial in loops and conditional expressions for combining assignment and value usage in one efficient instruction. Example: `branch_if (i +:= 1) < MAX_ITER: loop_label;`. * **Direct memory access (`base?offset`, `base!offset`, `base$offset`):** Significantly faster and smaller than API function calls (e.g., `setPixel`, `getPixel`) in loops operating on pixels. Minimizes function call overhead and allows direct data manipulation in memory. For instance, instead of `setPixel(x, y, color);` in a rendering loop, use `(FRAMEBUFFER + y * 320 + x)?0 = color;`. * **Bitwise operations:** Efficient use of bitwise operators (`&`, `|`, `^`, `<<`, `>>`, `#>>`) for data packing, fast math (e.g., $(x << 3)$ is $x \times 8$), and pattern generation can significantly reduce code size. * **Look-up Tables (LUTs):** Pre-calculating values of mathematical functions (e.g., sine, cosine) and storing them in memory (`data` section or initialization in `start()`) avoids costly real-time calculations in the `upd()` loop. Reading from memory is generally faster and generates less code than calling functions like `sin()`.     **Example LUT initialization in `start()`:**     ```curlywasm
+* **Low-level WASM instructions:** CurlyWASM compiles close to WASM instructions, giving the programmer significant control. * **`let inline`/`lazy` modifiers:** Allow control over when and how local variable values are calculated, affecting code size and performance.     * `let lazy name = expression;`: Expression calculated only once, on first use. Can save code size if the value is used multiple times, but only in one execution path.     * `let inline name = expression;`: Expression is inserted at the point of use, like a macro. Can increase code size but eliminates overhead associated with local variables. Useful for dynamic values that need recalculation in each iteration. * **`:=` operator:** As discussed in section 2.5, crucial in loops and conditional expressions for combining assignment and value usage in one efficient instruction. Example: `branch_if (i +:= 1) < MAX_ITER: loop_label;`. * **Direct memory access (`base?offset`, `base!offset`, `base$offset`):** Significantly faster and smaller than API function calls (e.g., `setPixel`, `getPixel`) in loops operating on pixels. Minimizes function call overhead and allows direct data manipulation in memory. For instance, instead of `setPixel(x, y, color);` in a rendering loop, use `(FRAMEBUFFER + y * 320 + x)?0 = color;`. * **Bitwise operations:** Efficient use of bitwise operators (`&`, `|`, `^`, `<<`, `>>`, `#>>`) for data packing, fast math (e.g., $(x << 3)$ is $x \times 8$), and pattern generation can significantly reduce code size. * **Look-up Tables (LUTs):** Pre-calculating values of mathematical functions (e.g., sine, cosine) and storing them in memory (`data` section or initialization in `start()`) avoids costly real-time calculations in the `upd()` loop. Reading from memory is generally faster and generates less code than calling functions like `sin()`.     **Example LUT initialization in `start()`:**
+```curlywasm
     const SIN_TABLE_SIZE = 256;
     const SIN_TABLE = USER_MEM; // Store the table at the beginning of USER_MEM
     export fn start() {
@@ -180,7 +201,7 @@ Sizecoding on MicroW8 involves minimizing the size of the generated WASM module.
     fn upd() {
       let angle_index = ( (time() * some_speed_f) as i32 ) & (SIN_TABLE_SIZE - 1); // Calculate index (with wrapping)       let sin_value_i8 = (SIN_TABLE + angle_index)?0; // Read value from table (0-255)       let sin_value_f = (sin_value_i8 as f32 - 128.0) / 127.0; // Scale back to -1.0 .. 1.0       // Use sin_value_f for further calculations...     }
     */
-    ```
+```
 
 ### 7. FPS Measurement
 
@@ -224,15 +245,21 @@ In MicroW8, every byte matters. CurlyWASM provides tools for precise control ove
 ### 2. Advanced Memory Management and Double Buffering
 
 Efficient use of the available 256 KB of memory is fundamental to advanced programming on MicroW8.
-* **Framebuffer (`FRAMEBUFFER`, 0x78):** 320x240 pixels, 8 bpp (76800 bytes). The address of pixel (x, y) is calculated as `FRAMEBUFFER + y * 320 + x`. Use the `?` operator to write/read single bytes (color indices).     ```curlywasm
+* **Framebuffer (`FRAMEBUFFER`, 0x78):** 320x240 pixels, 8 bpp (76800 bytes). The address of pixel (x, y) is calculated as `FRAMEBUFFER + y * 320 + x`. Use the `?` operator to write/read single bytes (color indices).
+```curlywasm
     let pixel_x = 10;     let pixel_y = 20;     let color_index = 12;
-    let offset = pixel_y * 320 + pixel_x;     (FRAMEBUFFER + offset)?0 = color_index; // Write color byte     let read_color = (FRAMEBUFFER + offset)?0; // Read color byte     ```
-* **Palette (`PALETTE`, 0x13000):** 256 colors, each 4 bytes (RGBA), totaling 1024 bytes. Remember that writing 32-bit RGBA values requires 4-byte alignment. Use the `!` operator for reading/writing 32-bit words or the `i32.load`/`i32.store` functions. Example: `font_palette.cwa` demonstrates palette manipulation.     ```curlywasm
+    let offset = pixel_y * 320 + pixel_x;     (FRAMEBUFFER + offset)?0 = color_index; // Write color byte     let read_color = (FRAMEBUFFER + offset)?0; // Read color byte
+```
+* **Palette (`PALETTE`, 0x13000):** 256 colors, each 4 bytes (RGBA), totaling 1024 bytes. Remember that writing 32-bit RGBA values requires 4-byte alignment. Use the `!` operator for reading/writing 32-bit words or the `i32.load`/`i32.store` functions. Example: `font_palette.cwa` demonstrates palette manipulation.
+```curlywasm
     // Write color (RGBA) to index 10 in the palette
-    let color_rgba = 0xff0000ff; // Blue (AA RR GG BB in little-endian, i.e., BB GG RR AA in memory)     let palette_offset = 10 * 4; // 4 bytes per color     (PALETTE + palette_offset)!0 = color_rgba; // Write 32-bit word     ```
-* **User Memory (`USER_MEM`, 0x14000-0x40000):** A large area (approx. 180 KB) available for your data. You can use it for arrays, data structures, sprites, fonts, sound data, and also as a **back buffer** for double buffering. * **Double Buffering:** A technique involving drawing the next frame to a buffer in RAM (e.g., in the `USER_MEM` area) instead of directly to the `FRAMEBUFFER`. After drawing is complete, the contents of this buffer are copied to the `FRAMEBUFFER`. This prevents tearing and flickering, ensuring smooth transitions between frames. The `game_of_life.cwa` example uses two buffers (FRAMEBUFFER and BACKBUFFER in USER_MEM) and copies between them. Copying the entire buffer (76800 bytes) can be done very efficiently in MicroW8 using the `memory.copy` instruction.     **Example Double Buffering Implementation:**     1.  Reserve an area in `USER_MEM` for the back buffer, e.g., `const BACKBUFFER = USER_MEM;`. Ensure it's large enough (320x240 bytes).     2.  In the `upd()` function:         a.  Draw all scene elements to `BACKBUFFER`. Instead of `setPixel(x, y, c)`, use e.g., `set(BACKBUFFER, x, y, c)` (a helper function using `(BACKBUFFER + y * 320 + x)?0 = c;`) or direct writing.         b.  After drawing is complete, copy `BACKBUFFER` to `FRAMEBUFFER`:         ```curlywasm
+    let color_rgba = 0xff0000ff; // Blue (AA RR GG BB in little-endian, i.e., BB GG RR AA in memory)     let palette_offset = 10 * 4; // 4 bytes per color     (PALETTE + palette_offset)!0 = color_rgba; // Write 32-bit word
+```
+* **User Memory (`USER_MEM`, 0x14000-0x40000):** A large area (approx. 180 KB) available for your data. You can use it for arrays, data structures, sprites, fonts, sound data, and also as a **back buffer** for double buffering. * **Double Buffering:** A technique involving drawing the next frame to a buffer in RAM (e.g., in the `USER_MEM` area) instead of directly to the `FRAMEBUFFER`. After drawing is complete, the contents of this buffer are copied to the `FRAMEBUFFER`. This prevents tearing and flickering, ensuring smooth transitions between frames. The `game_of_life.cwa` example uses two buffers (FRAMEBUFFER and BACKBUFFER in USER_MEM) and copies between them. Copying the entire buffer (76800 bytes) can be done very efficiently in MicroW8 using the `memory.copy` instruction.     **Example Double Buffering Implementation:**     1.  Reserve an area in `USER_MEM` for the back buffer, e.g., `const BACKBUFFER = USER_MEM;`. Ensure it's large enough (320x240 bytes).     2.  In the `upd()` function:         a.  Draw all scene elements to `BACKBUFFER`. Instead of `setPixel(x, y, c)`, use e.g., `set(BACKBUFFER, x, y, c)` (a helper function using `(BACKBUFFER + y * 320 + x)?0 = c;`) or direct writing.         b.  After drawing is complete, copy `BACKBUFFER` to `FRAMEBUFFER`:
+```curlywasm
         // Copy the entire content of BACKBUFFER (320*240 bytes) to FRAMEBUFFER
-        memory.copy(FRAMEBUFFER, BACKBUFFER, 320 * 240);         ```
+        memory.copy(FRAMEBUFFER, BACKBUFFER, 320 * 240);
+```
         This single `memory.copy` operation is significantly faster than drawing individual pixels to the framebuffer.
 ### 3. Implementing Demoscene Effects
 
@@ -311,7 +338,9 @@ export fn upd() {
 ### 5. Sound using `sndGes`
 
 The `sndGes` synthesizer is MicroW8's built-in sound chip. It is controlled by 32 bytes of memory from address 0x50 to 0x70. These 32 bytes are copied from the main thread to the sound thread after each `upd()` call, making changes to the registers audible.
-* **Register Structure (0x50 - 0x70):** The 32 bytes are divided into 4 blocks of 6 bytes for each of the 4 channels (starting at 0x50, 0x56, 0x5C, 0x62), 2 bytes for volume (0x68, 0x69), and 6 bytes for filters (0x6A - 0x6F). * **Channels (0-3):** Each channel has registers to control:     * CTRL (offset 0): Wave type, note on flag, attack trigger, filter selection, stereo panning (wide/narrow), ring modulation.     * PULS (offset 1): Pulse width for various wave types.     * FINE (offset 2): Fractional part of the note.     * NOTE (offset 3): Note number (69=A4).     * ENVA (offset 4): Envelope A parameters (Attack, Decay).     * ENVB (offset 5): Envelope B parameters (Sustain, Release). * **Volume (0x68, 0x69):** 4-bit fields for pairs of channels. * **Filters (0x6A - 0x6F):** Programmable filters. * **`playNote(channel, note)` function:** As mentioned, this is a convenient API function that modifies the appropriate bytes in the `sndGes` registers to trigger a note. It's a good starting point. * **Direct Register Manipulation:** For full control, you can write directly to the memory bytes starting from 0x50. For example, to set the wave and note on channel 1 (registers start at 0x50 + 1\*6 = 0x56):     ```curlywasm
+* **Register Structure (0x50 - 0x70):** The 32 bytes are divided into 4 blocks of 6 bytes for each of the 4 channels (starting at 0x50, 0x56, 0x5C, 0x62), 2 bytes for volume (0x68, 0x69), and 6 bytes for filters (0x6A - 0x6F). * **Channels (0-3):** Each channel has registers to control:     * CTRL (offset 0): Wave type, note on flag, attack trigger, filter selection, stereo panning (wide/narrow), ring modulation.     * PULS (offset 1): Pulse width for various wave types.     * FINE (offset 2): Fractional part of the note.     * NOTE (offset 3): Note number (69=A4).     * ENVA (offset 4): Envelope A parameters (Attack, Decay).     * ENVB (offset 5): Envelope B parameters (Sustain, Release). * **Volume (0x68, 0x69):** 4-bit fields for pairs of channels. * **Filters (0x6A - 0x6F):** Programmable filters. * **`playNote(channel, note)` function:** As mentioned, this is a convenient API function that modifies the appropriate bytes in the `sndGes` registers to trigger a note. It's a good starting point. * **Direct Register Manipulation:** For full control, you can write directly to the memory bytes starting from 0x50. For example, to set the wave and note on channel 1 (registers start at 0x50 + 1\*6 = 0x56):
+
+```curlywasm
     let channel1_base = 0x56;     let wave_type = 1; // Saw     let note_number = 72; // C5
     // Set wave (Saw = 1 << 6) and note on flag (bit 0)
     (channel1_base)?0 = (wave_type << 6) | 1;
@@ -319,7 +348,8 @@ The `sndGes` synthesizer is MicroW8's built-in sound chip. It is controlled by 3
     (channel1_base + 3)?0 = note_number;
     // To trigger the attack, you need to change the trigger bit (bit 1) in the CTRL register (offset 0)     // You can do this, e.g., by changing the bit value each frame when the note should be triggered.     // (channel1_base)?0 = (channel1_base)?0 ^ 2; // XOR the trigger bit
     // To stop the note, set the note on flag to 0:
-    // (channel1_base)?0 = (channel1_base)?0 & ~1; // Clear bit 0     ```
+    // (channel1_base)?0 = (channel1_base)?0 & ~1; // Clear bit 0
+```
     Studying the `playNote` code in `platform.txt` can help understand how this function modifies the registers.
 ### 6. Optimization and Tools
 
@@ -330,9 +360,11 @@ In the demoscene, demos are often created for competitions (compos) with strict 
 ### 7. Debugging
 
 Debugging in a low-level environment with limited tools requires creativity:
-* **Debug output:** Use control characters to redirect text output to the debug console (control character 6) or the screen (control character 4). `printInt(value)` and `printChar('\n')` (control character 10) are invaluable for displaying variable values and tracing program flow.     ```curlywasm
+* **Debug output:** Use control characters to redirect text output to the debug console (control character 6) or the screen (control character 4). `printInt(value)` and `printChar('\n')` (control character 10) are invaluable for displaying variable values and tracing program flow.
+```curlywasm
     // Example logging a value to the debug console
-    printChar('\6'); // Switch output to console     printString("X="); // Print label     printInt(my_x); // Print the value of variable my_x     printChar('\n'); // Print newline     printChar('\4'); // Switch output back to screen     ```
+    printChar('\6'); // Switch output to console     printString("X="); // Print label     printInt(my_x); // Print the value of variable my_x     printChar('\n'); // Print newline     printChar('\4'); // Switch output back to screen
+```
 * **`uw8 --debug`:** Using this option during compilation (`uw8 compile --debug <input.cwa> <output.wasm>`) generates a name section in the WASM module. Debugging tools (e.g., the built-in debugger in Chrome/Firefox) can then display the original function and variable names from CurlyWASM instead of anonymous indices, significantly easing step-by-step code tracing. * **`wasm2wat`:** Analyzing the WAT code generated by `wasm2wat` allows you to see exactly which WASM instructions your CurlyWASM code produces. This helps understand the program's low-level behavior and detect errors related to types, the stack, or memory operations.
 **Debugging Demoscene Effects**
 Debugging in sizecoding is tough because every byte counts. Here are practical techniques for MicroW8:
@@ -353,7 +385,8 @@ Knowledge of MicroW8 and CurlyWASM allows for the implementation of many classic
 * **Procedural Content Generation (PCG):** Generating graphics, sound, and other assets in real-time using algorithms. This is the essence of many demoscene effects and crucial for sizecoding, as an algorithm usually takes less space than pre-made data. * **Pixel Effects (Plasma, Interference):** Generating the color of each pixel based on its coordinates and time, often using trigonometric functions and noise. Examples: `plasma_sizecoding_1.cwa`, `interference.cwa`. * **Fractals:** Drawing fractal sets through iterative mathematical formulas. Examples: `mandelbrot.cwa`, `sierpinski_triangle.cwa`. * **Raycasting and Raymarching:** 3D/2D rendering techniques based on casting rays. Versions based on SDF (like in `urban_drift.cwa`) allow for procedural geometry definition. * **Noise Patterns:** Generating various types of noise (e.g., Perlin noise, Simplex noise - if you implement them) to create procedural textures or animations. * **Mathematics as a tool:** Mathematical functions (`sin`, `cos`, `sqrt`, `abs`, `fmod`, etc.) and bitwise operators are fundamental tools for creating visual and sound effects, as well as for optimizing calculations. In sizecoding, creative use of math to generate patterns minimizes the need to store large amounts of data. * **Palette and color cycling:** Dynamically changing colors in the palette (`PALETTE`, 0x13000) while keeping static color indices in the framebuffer allows creating animations, gradients, and "flowing" effects with minimal computational overhead. Example: `font_palette.cwa` shows palette manipulation. Color cycling is a technique where colors in the palette are cyclically shifted, creating an impression of movement. * **Memory as a resource:** Besides the framebuffer and palette, effective use of `USER_MEM` for:     * **Look-up Tables (LUTs):** As mentioned, pre-computed tables of values (e.g., sines) for fast retrieval.     * **Sprites/Fonts:** Storing custom graphic data if not generated procedurally.     * **Additional buffers:** E.g., for double buffering (`game_of_life.cwa`). * **Efficient loops:** Optimizing loops that process pixels or data is crucial for performance. Use `loop` and `branch_if`, minimize calculations inside loops, prefer direct memory access (`base?offset`). * **Bitwise operations:** Utilizing bitwise operations for fast math, data packing, and pattern generation (e.g., hashing positions for noise) is fundamental in sizecoding. * **Audiovisual synchronization:** Synchronizing visual effects with sound (generated e.g., by `sndGes`) is crucial for the demoscene feel. Time (`time()`, `TIME_MS`) is the common synchronization axis. Example: `Chaos_Rose.cwa` shows simple synchronization of note triggering with animation.
 **Tunnel Effects**
 Tunnels are a demoscene classic, creating the illusion of flying through a cylindrical or conical structure. They are compact and visually impressive, ideal for MicroW8 (320x240, 8 bpp). The idea is to map screen pixels to a 2D texture using distance from the center and angle as UV coordinates, with an animated offset for the motion effect.
-* **Appearance:** On screen, you see a perspective tunnel with pulsating patterns, e.g., a checkerboard or gradient, moving inwards. * **Pseudocode:**     ```pseudocode
+* **Appearance:** On screen, you see a perspective tunnel with pulsating patterns, e.g., a checkerboard or gradient, moving inwards. * **Pseudocode:**
+```pseudocode
     Function tunnel_effect():
       t = get_time() // Time for animation
       texture_size = 64 // Texture size (e.g., 64x64)
@@ -381,11 +414,13 @@ Tunnels are a demoscene classic, creating the illusion of flying through a cylin
         // Get color from the texture (stored e.g., in USER_MEM)
         color = get_pixel_from_texture(tex_u_int, tex_v_int)
         // Write color to Framebuffer
-        write_pixel_to_framebuffer(px, py, color)     ```
+        write_pixel_to_framebuffer(px, py, color)
+```
 * **Tip:** Pre-compute `sqrt` and `atan2` in a LUT in `USER_MEM` to speed up calculations in the pixel loop. The texture (e.g., 64x64) can be generated procedurally in the `start()` function or loaded from the `data` section. See `plasma_sizecoding_1.cwa` for a similar animation based on time and coordinate mapping.
 **Rotozoomers**
 A rotozoomer is a 2D effect that scales and rotates a texture (e.g., checkerboard, sprite) in real-time, creating dynamic motion. It's simple to implement and effective, especially in sizecoding.
-* **Appearance:** A texture on the screen rotates and pulsates (changes size), creating a hypnotic effect, e.g., a spinning checkerboard. * **Pseudocode:**     ```pseudocode
+* **Appearance:** A texture on the screen rotates and pulsates (changes size), creating a hypnotic effect, e.g., a spinning checkerboard. * **Pseudocode:**
+```pseudocode
     Function rotozoom_effect():
       t = get_time() // Time for animation
       texture_size = 32 // Texture size (e.g., 32x32)
@@ -414,11 +449,13 @@ A rotozoomer is a 2D effect that scales and rotates a texture (e.g., checkerboar
         // Get color from the texture (stored e.g., in USER_MEM)
         color = get_pixel_from_texture(tex_u_int, tex_v_int)
         // Write color to Framebuffer
-        write_pixel_to_framebuffer(px, py, color)     ```
+        write_pixel_to_framebuffer(px, py, color)
+```
 * **Tip:** Store a small texture (e.g., 32x32) in `USER_MEM`. Use pre-computed `sin` and `cos` from a LUT for faster calculations. The effect can be combined with plasma (see `plasma_sizecoding_1.cwa`) for even more interesting patterns.
 **Particle Systems**
 Particle systems generate many small objects (e.g., sparks, stars, smoke) moving according to simple physics rules (velocity, gravity, lifetime). They are visually impressive and scale well on MicroW8, despite computational power limitations.
-* **Appearance:** Tens or hundreds of points move across the screen, creating effects like rain, explosions, fog, often synchronized with music. * **Pseudocode:**     ```pseudocode
+* **Appearance:** Tens or hundreds of points move across the screen, creating effects like rain, explosions, fog, often synchronized with music. * **Pseudocode:**
+```pseudocode
     // Structure (in memory) for a single particle
     // e.g., 4 x f32 = 16 bytes per particle     Structure Particle:
       x, y: position (f32)
@@ -463,11 +500,13 @@ Particle systems generate many small objects (e.g., sparks, stars, smoke) moving
           If px >= 0 and px < 320 and py >= 0 and py < 240:
             write_pixel_to_framebuffer(px, py, particle_color)         Else:
           // Particle "died", reset it (e.g., to a new starting position)
-          reset_particle(particle_address) // Sets new position, velocity, lifetime     ```
+          reset_particle(particle_address) // Sets new position, velocity, lifetime
+```
 * **Tip:** Store particle data compactly in `USER_MEM`. Use `f32` for position and velocity for smooth motion. Reset particles that have gone off-screen or whose lifetime has ended to maintain a constant number of active particles. Combine with `sndGes` for music synchronization (e.g., emit particles on note triggers - see `Chaos_Rose.cwa`).
 **Dynamic Palette Manipulation**
 Palette manipulation allows changing colors in `PALETTE` (0x13000, 256x32 bpp RGBA) in real-time, creating effects like pulsating gradients, smooth tonal transitions, or "fading" without redrawing the entire framebuffer. This is a very efficient technique in modes with a limited number of colors (like 8 bpp in MicroW8).
-* **Appearance:** Colors on the screen change smoothly, e.g., the background transitions from blue to red, objects pulse to the rhythm of the music, or the entire image smoothly fades to black. * **Pseudocode (example of animating a gradient in the palette):**     ```pseudocode
+* **Appearance:** Colors on the screen change smoothly, e.g., the background transitions from blue to red, objects pulse to the rhythm of the music, or the entire image smoothly fades to black. * **Pseudocode (example of animating a gradient in the palette):**
+```pseudocode
     Function animate_palette():
       t = get_time() // Time for animation
 
@@ -484,11 +523,13 @@ Palette manipulation allows changing colors in `PALETTE` (0x13000, 256x32 bpp RG
         // Calculate address in the palette (index * 4 bytes)
         address_in_palette = PALETTE + index * 4
         // Write color to the palette (using 32-bit word write '!')
-        write_word_to_memory(address_in_palette, color_rgba)     ```
+        write_word_to_memory(address_in_palette, color_rgba)
+```
 * **Tip:** Limit the number of modified colors per frame if manipulating the entire palette is too computationally expensive. Pre-compute `sin`/`cos` in a LUT in `USER_MEM`. The effect can be combined with plasma or other effects based on color indices for greater dynamics (see `plasma_sizecoding_1.cwa`, `font_palette.cwa`). Remember to use the `!` operator (or `i32.store`) to write 32-bit color values and ensure 4-byte address alignment.
 **Audiovisual Synchronization**
 Synchronizing visuals with sound is a hallmark of the demoscene. MicroW8 enables this by reading the state of the `sndGes` sound channels (e.g., whether a note is active, its pitch, the current envelope value) or, if implementing your own `snd()` function, through direct communication between the audio and main threads (e.g., via shared memory). Visual effects reacting to music significantly enhance the experience.
-* **Appearance:** Objects (e.g., circles, lines, particles) pulse, change color, size, or speed in rhythm with the music (e.g., grow on strong kick drum hits, change color with the melody). * **Pseudocode (example of reacting to a note trigger):**     ```pseudocode
+* **Appearance:** Objects (e.g., circles, lines, particles) pulse, change color, size, or speed in rhythm with the music (e.g., grow on strong kick drum hits, change color with the melody). * **Pseudocode (example of reacting to a note trigger):**
+```pseudocode
     // Global variable or memory location to track trigger state
     previous_trigger_state_channel0 = 0
 
@@ -509,7 +550,8 @@ Synchronizing visuals with sound is a hallmark of the demoscene. MicroW8 enables
       // Read volume register for channel 0 (lower 4 bits of address 0x68)
       volume_channel0 = read_byte_from_memory(0x68) & 0x0F
       effect_scale = 1.0 + (volume_channel0 / 15.0) * max_enlargement
-      draw_object_with_scale(effect_scale)     ```
+      draw_object_with_scale(effect_scale)
+```
 * **Tip:** Reading `sndGes` registers every frame is cheap. React to key events (note trigger, pitch change) or averaged values (e.g., average volume) to avoid overly "jittery" visuals. Combine with particle systems (emit in rhythm) or rotozoomers (pulse in rhythm) for dynamic effects (see `Chaos_Rose.cwa` for a simple example of synchronizing a note with animation).
 ### 3. "Smoothness Above All"
 
