@@ -46,7 +46,7 @@
         },
         {
             "trigger": "global",
-            "contents": "global mut ${1:name}${2:: ${3:type}} = ${4:value};",
+            "contents": "global mut ${1:name} = ${2:value};",
             "details": "global mut name[: type] = value;",
             "kind": "keyword"
         },
@@ -69,9 +69,9 @@
             "kind": "keyword"
         },
         {
-            "trigger": "return",
-            "contents": "return${1: expression}",
-            "details": "return [expression]",
+            "trigger": "block",
+            "contents": "block ${1:label} { ${2:block} }",
+            "details": "block label { block }",
             "kind": "keyword"
         },
         {

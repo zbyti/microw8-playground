@@ -14,8 +14,10 @@ const PI             = 3.14159265;    // Mathematical constant π
 const RAD            = PI / 180.0;    // Conversion factor from degrees to radians
 
 // Screen constants
-const SCR_X          = 320;           // Screen width in pixels
-const SCR_Y          = 240;           // Screen height in pixels
+const SCR_X          = 320;           // Screen width in pixels (integer)
+const SCR_Y          = 240;           // Screen height in pixels (integer)
+const SCR_X_F        = 320.0;         // Screen width in pixels (float)
+const SCR_Y_F        = 240.0;         // Screen height in pixels (float)
 const SCR_W          = SCR_X / 8;     // Screen width in chars (40)
 const SCR_H          = SCR_Y / 8;     // Screen height in chars (30)
 const CENTER_X       = SCR_X / 2;     // X-coordinate of the screen center (160)
