@@ -1,7 +1,13 @@
 # The Complete MicroW8 Tutorial: From Basics to Advanced Demoscene
 
 Welcome to the fascinating world of MicroW8, a virtual fantasy console designed for demosceners and sizecoders who want to create audiovisual masterpieces within strict hardware limitations. This tutorial is a comprehensive guide to programming on MicroW8 using the CurlyWASM language, combining fundamentals, advanced techniques, and the demoscene philosophy. Whether you're just starting your journey or you're an experienced programmer looking for sizecoding challenges, you'll find everything you need here to create impressive demos on this platform.
-The tutorial is divided into three main parts and an inspiration section, which complement each other smoothly: 1.  **MicroW8 and CurlyWASM Basics** – introduction to the console, language, and key programming mechanisms. 2.  **Advanced Techniques** – in-depth discussion of optimization, memory management, demoscene effects, and sound. 3.  **Demoscene and Creativity** – the philosophy of the demoscene, key visual techniques, and a practical approach to demo creation. 4.  **Inspirations and Demoscene Resources** – an overview of iconic demos, examples, and communities.
+The tutorial is divided into three main parts and an inspiration section, which complement each other smoothly:
+
+1.  **MicroW8 and CurlyWASM Basics** – introduction to the console, language, and key programming mechanisms.
+2.  **Advanced Techniques** – in-depth discussion of optimization, memory management, demoscene effects, and sound.
+3.  **Demoscene and Creativity** – the philosophy of the demoscene, key visual techniques, and a practical approach to demo creation.
+4.  **Inspirations and Demoscene Resources** – an overview of iconic demos, examples, and communities.
+
 Each section includes detailed explanations, code examples (CurlyWASM or pseudocode), optimization tips, and references to examples from files such as `mandelbrot.cwa`, `plasma_sizecoding_1.cwa`, or `urban_drift.cwa`. The document concludes with a glossary explaining key terms related to MicroW8, CurlyWASM, and the demoscene.
 Prepare for a journey into a world where every byte matters, and creativity is born from limitations. Let's begin!
 
