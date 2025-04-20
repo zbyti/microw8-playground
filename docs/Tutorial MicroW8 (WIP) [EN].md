@@ -4,6 +4,7 @@ Welcome to the fascinating world of MicroW8, a virtual fantasy console designed 
 The tutorial is divided into three main parts and an inspiration section, which complement each other smoothly: 1.  **MicroW8 and CurlyWASM Basics** – introduction to the console, language, and key programming mechanisms. 2.  **Advanced Techniques** – in-depth discussion of optimization, memory management, demoscene effects, and sound. 3.  **Demoscene and Creativity** – the philosophy of the demoscene, key visual techniques, and a practical approach to demo creation. 4.  **Inspirations and Demoscene Resources** – an overview of iconic demos, examples, and communities.
 Each section includes detailed explanations, code examples (CurlyWASM or pseudocode), optimization tips, and references to examples from files such as `mandelbrot.cwa`, `plasma_sizecoding_1.cwa`, or `urban_drift.cwa`. The document concludes with a glossary explaining key terms related to MicroW8, CurlyWASM, and the demoscene.
 Prepare for a journey into a world where every byte matters, and creativity is born from limitations. Let's begin!
+
 ---
 
 ## Part 1: MicroW8 and CurlyWASM Basics
