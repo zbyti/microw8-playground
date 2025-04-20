@@ -141,7 +141,7 @@ Reads a binary WebAssembly module, removes all exports not used by the MicroW8 p
 
 ## How to add custom Syntax Highlighting to [Sublime Text](https://www.sublimetext.com/)
 
-#### **1. Create or obtain a [Syntax Definition File](https://github.com/zbyti/microw8-playground/blob/master/syntax/CurlyWASM.sublime-syntax)**
+#### **1. Create or obtain a [Syntax Definition File](https://github.com/zbyti/microw8-playground/blob/master/syntax/SublimeText/CurlyWASM.sublime-syntax)**
 - The file must be in **`.sublime-syntax`** format (YAML-based).  
 - Example: `CurlyWASM.sublime-syntax` (for your `.cwa` files).
 
