@@ -50,7 +50,7 @@ If the module exports a function called `start`, it will be called once after th
 
 7. [Wobbling tunnel with TWIRL](https://exoticorn.github.io/microw8/v0.4.1/#AjPr1wB5I2dXkp8aHDvw2oZqmu7OiMfyrqPeDJtQugM5k6f8I95C0qnW0wvmx2frTXQUVLztl6aPOWvvKDd+x+NgAUFNokxuujLPS/Z+61SrDb38Fllt1muqlDopD+NV/NF9gqcRj1ztguh9ybDo/3FJl3K8SnKkOELl46Si8JvgRRDUGgpj65wUCW2aEWAo9TGJiZJcA2/JjbJ/5fPQckGphGZSCMY=) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/wobbling_twirl_tunnel.cwa)\]
 
-8. [Bubble Uiverse](https://exoticorn.github.io/microw8/v0.4.1/#AimPnnXU3uH5kPqYOnQA7SLsRPTyAG+VXXfRa2Yaj3LN/Xwo9LsPQdouPHiQnmU9tcmo4GqBlsPIeGn1ssPDYCH29+C8Dw33pbkJiQGhforpnqshPo/1Y+5q/jOiqSb1k3imCiNynboZp+6q00Si/+CARacq3cfRYIp8w7XbPygh0Vlu8jawEg5ETN4MAk8sV3rXSsw0Otu5JY/LRYS3DXOKve9CihSFkz3AhtTLIkNe4Zgtzu1p/Sua06Bpp7Ju3c6gttDx37AC4f5pQDB/tMyAaPSLr5hM5pMICdy/w6xOwkSTX87l7ClHSzqdaRkvoo0RjuxXwri30bJeQ9e9f4ctNyvoEz9i3edA2yOXqszVnUMwNQBpbJsHJJsJkdK1t7IaLWdmpREnafZ3OEPZcxuqv0kc4KJA2ANPLNC0/EFoZyA=)\[[source](https://github.com/zbyti/microw8-playground/blob/master/src/bubbleuniverse.cwa)\]
+8. [Bubble Uiverse](https://exoticorn.github.io/microw8/v0.4.1/#AimPnnXU3uH5kPqYOnQA7SLsRPTyAG+VXXfRa2Yaj3LN/Xwo9LsPQdouPHiQnmU9tcmo4GqBlsPIeGn1ssPDYCH29+C8Dw33pbkJiQGhforpnqshPo/1Y+5q/jOiqSb1k3imCiNynboZp+6q00Si/+CARacq3cfRYIp8w7XbPygh0Vlu8jawEg5ETN4MAk8sV3rXSsw0Otu5JY/LRYS3DXOKve9CihSFkz3AhtTLIkNe4Zgtzu1p/Sua06Bpp7Ju3c6gttDx37AC4f5pQDB/tMyAaPSLr5hM5pMICdy/w6xOwkSTX87l7ClHSzqdaRkvoo0RjuxXwri30bJeQ9e9f4ctNyvoEz9i3edA2yOXqszVnUMwNQBpbJsHJJsJkdK1t7IaLWdmpREnafZ3OEPZcxuqv0kc4KJA2ANPLNC0/EFoZyA=) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/bubbleuniverse.cwa)\]
 
 ## Best demos
 
