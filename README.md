@@ -35,7 +35,7 @@ If the module exports a function called `start`, it will be called once after th
 14000-40000: user memory
 ```
 
-## Exercises Live Examples
+## Some Exercises - Live Examples (more in cart/src)
 
 1. [3D Wireframe Cube](https://exoticorn.github.io/microw8/v0.4.1/#AgEvmenHYIQ0/luYmvahuJDSK7ewWqC0bIlfA751sc6jBxGyedrH0fsQzSunqaGuAcJ8V6HiVrLGcd6DIQPMCza2VXzXiRTCtvt8L2gcMYNfNacvOupltyuXRztjlV69KL1APBHQy3NFg9k7XhY0XSfVAZF+sK/q6EGBeIYsZRipfIatJ2huh+QWbG5z72EmaMOFAbFYAAMbDPM5wUkdjS6GkGmj0uB9JDBAljdxJC6n/dfjCVbXG6HIxthhJpuzWjCKxyAxXsMPeq/mTKxEkWDSweAlW9jjMPTucnJyEVVgdTd/1kGhYtU1OIpLeFJi5fgCD8OLerrvBbvpeWmRfCRVqk/hBRJKe0c9M/D/2u7b1s1K8HPnUTigwvTtU17YQcup2JvCJ/vlH+o=) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/cube_wireframe.cwa)\]
 2. [Plasma (chars)](https://exoticorn.github.io/microw8/v0.4.1/#AgF/iaR5p9nXsZHHwQXdhY0Xmeg9eA05SSIDDLvc1zq7a5ctQby0eLztGDNPm53Fk5eSR3PzqpV9mdbfcFBvuaDRSzqPvmMcHbv/IVhlHwhfThvLMcJSE6A9tIrNaMjYEdbzgKJm28rpVk85fwDmW350DD0ERfctOGaBjW4nmJ6lOG/0ypMF5ZarvBWqcM4oH2aJUtHo+fOVFqTr1gDxuaA0khofcTF7uKvnRveV5goyNUxma+NKSukTWz6g0ZFQDz6OSe37zdq4wpdDHymLs97gH3ivAHP8b7Qr95Lobvo4O3nlRvuHEIvOPpyKVFqeDLQkuJOjYbYgCISJfbd5MLzTHA==
@@ -49,6 +49,8 @@ If the module exports a function called `start`, it will be called once after th
 6. [Wobbling tunnel](https://exoticorn.github.io/microw8/v0.4.1/#Ag2v9v7KuJ02v2JFdBHrzrmCo7iZoSSD+JsTOUzS12Rs2Lhfm+db5q5GKIMFv2TDi1hx+Abe5mMnTXzMoJJ9315RXfYP8VvIDF8lgebwrS+9xClGGCvPN5aBPh7Dh/8nil70ZNe/PxEwOa2XmF2cw6DVb0UYTJ2oIQbNkBoJOS1RE3LGjYw0EMenLIB/fLyBzJhmA61AgwjD) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/wobbling_tunnel.cwa)\]
 
 7. [Wobbling tunnel with TWIRL](https://exoticorn.github.io/microw8/v0.4.1/#AjPr1wB5I2dXkp8aHDvw2oZqmu7OiMfyrqPeDJtQugM5k6f8I95C0qnW0wvmx2frTXQUVLztl6aPOWvvKDd+x+NgAUFNokxuujLPS/Z+61SrDb38Fllt1muqlDopD+NV/NF9gqcRj1ztguh9ybDo/3FJl3K8SnKkOELl46Si8JvgRRDUGgpj65wUCW2aEWAo9TGJiZJcA2/JjbJ/5fPQckGphGZSCMY=) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/wobbling_twirl_tunnel.cwa)\]
+
+8. [Bubble Uiverse](https://exoticorn.github.io/microw8/v0.4.1/AimPnnXU3uH5kPqYOnQA7SLsRPTyAG+VXXfRa2Yaj3LN/Xwo9LsPQdouPHiQnmU9tcmo4GqBlsPIeGn1ssPDYCH29+C8Dw33pbkJiQGhforpnqshPo/1Y+5q/jOiqSb1k3imCiNynboZp+6q00Si/+CARacq3cfRYIp8w7XbPygh0Vlu8jawEg5ETN4MAk8sV3rXSsw0Otu5JY/LRYS3DXOKve9CihSFkz3AhtTLIkNe4Zgtzu1p/Sua06Bpp7Ju3c6gttDx37AC4f5pQDB/tMyAaPSLr5hM5pMICdy/w6xOwkSTX87l7ClHSzqdaRkvoo0RjuxXwri30bJeQ9e9f4ctNyvoEz9i3edA2yOXqszVnUMwNQBpbJsHJJsJkdK1t7IaLWdmpREnafZ3OEPZcxuqv0kc4KJA2ANPLNC0/EFoZyA=) \[[source](https://github.com/zbyti/microw8-playground/blob/master/src/bubbleuniverse.cwa)\]
 
 ## Best demos
 

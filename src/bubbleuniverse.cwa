@@ -1,0 +1,192 @@
+// MicroW8 Bubble Universe Effect - Converted from MadPascal
+// Original MadPascal code by Bocinu for Neo6502 (BCX port?)
+// https://github.com/tebe6502/Mad-Pascal/blob/origin/samples/neo6502/bubbleuniverse/bubbleuniverse.pas
+// Converted to CurlyWASM for MicroW8 by MicroW8 Developer (Gemini Gem 2.5 Flash)
+
+// Import necessary MicroW8 API functions and memory
+import "env.memory" memory(4); // Request 4 pages (256KB) of memory
+import "env.sin" fn sin(f32) -> f32;
+import "env.cos" fn cos(f32) -> f32;
+import "env.setPixel" fn setPixel(i32, i32, i32);
+import "env.cls" fn cls(i32);
+import "env.setTextColor" fn setTextColor(i32);
+import "env.setCursorPosition" fn setCursorPosition(i32, i32);
+import "env.printInt" fn printInt(i32);
+import "env.time" fn time() -> f32; // Import time function
+
+// Built-in math functions (no import needed)
+// fn nearest(f32) -> f32; // Used for f32 to i32 conversion with rounding
+// fn min(f32, f32) -> f32; // Built-in min function
+// fn max(f32, f32) -> f32; // Built-in max function
+
+// Constants
+const PI: f32 = 3.14159265; // Mathematical constant Pi
+const N: i32 = 200;
+const R: f32 = (PI * 2.0) / 235.0; // Użyjemy 235.0 jak w kodzie BCX
+
+// --- Global Constants ---
+const Impedance: f32 = 0.002; // Wartość kroku animacji z kodu BCX 0.005
+const ScaleFactor: f32 = 60.0; // ZMNIEJSZONE skalowanie dla MicroW8 (poprzednio 100.0)
+const CenterX_MicroW8: i32 = 160; // MicroW8 screen center X
+const CenterY_MicroW8: i32 = 120; // MicroW8 screen center Y
+// ------------------------
+
+
+// MicroW8 system constants
+const TIME_MS: i32 = 0x40; // Address of system time in milliseconds (i32)
+const PALETTE: i32 = 0x13000; // Address of the palette memory
+
+// Global mutable variables to preserve state between frames
+// These were implicitly global in Pascal's var section and drive the animation.
+// y is omitted as it wasn't used in the core logic snippet.
+global mut x: f32 = 0.0;
+global mut v: f32 = 0.0;
+global mut s: i32 = 60;
+// Global c is no longer used for color calculation in this version.
+
+// Global variable for time offset, like 't' in BCX
+global mut anim_t: f32 = 0.0; // Corresponds to 't' in BCX
+
+// Optional initialization function (called once at module load)
+export fn start() {
+    // Prepare palette: Fill the entire 255 entries (0-254) with a colorful gradient
+    let color_index: i32 = 0; // Loop counter from 0 to 254
+    loop pal_loop { // Label for the palette loop
+        // Loop body
+
+        // Calculate RGBA color value based on color_index for a colorful gradient (AABBGGRR)
+        let alpha: i32 = 255; // Full opacity
+
+        // Simple cyclical formula for R, G, B to ensure variety across the palette
+        let red: i32 = (color_index * 7) % 256;
+        let green: i32 = (color_index * 11) % 256;
+        let blue: i32 = (color_index * 13) % 256;
+
+        // Ensure components are within 0-255 range using f32 min/max and casting back
+        let final_red = max(0.0, min(red as f32, 255.0)) as i32;
+        let final_green = max(0.0, min(green as f32, 255.0)) as i32;
+        let final_blue = max(0.0, min(blue as f32, 255.0)) as i32;
+
+        // Combine into AABBGGRR format
+        let rgba_color = (alpha << 24) | (final_blue << 16) | (final_green << 8) | final_red;
+
+        // Write 32-bit color to the palette memory address
+        // Address = PALETTE + color_index * 4 bytes
+        (PALETTE + color_index * 4)!0 = rgba_color; // Use !0 for 32-bit store
+
+        // Increment index and check condition for next iteration
+        color_index += 1; // Increment index
+        branch_if color_index <= 254: pal_loop; // Continue loop if index is still <= 254
+    }
+    // Loop exits naturally here when color_index becomes 255. NO LABEL NEEDED HERE.
+
+
+    // Set palette color 255 to black (AABBGGRR: 0,0,0,0) for background
+    (PALETTE + 255 * 4)!0 = 0;
+
+    // Initialize global state variables here, once at the start of the program.
+    x = 0.0;
+    v = 0.0;
+    s = 60; // s is a scaling factor, set once.
+    anim_t = 0.0; // Initialize animation time
+
+    // Clear the screen with color 255 (black)
+    cls(255); // Keep cls here for initial clear, upd will clear each frame
+}
+
+// Main update function (called every frame)
+export fn upd() {
+    // !!! Clear the screen at the beginning of each frame for animation !!!
+    cls(255);
+
+    // Declare and initialize local variables for this frame's calculations and loop counters
+    let a: f32 = 0.0;
+    let b: f32 = 0.0;
+    let u: f32 = 0.0;
+    // i and j are declared and initialized inside their respective loops
+
+    // Local timing variables (for display)
+    let time1: i32 = 0;
+    let time2: i32 = 0;
+
+    // Read time before drawing loop
+    time1 = TIME_MS!0; // Use !0 for 32-bit load
+
+    // Drawing loop (equivalent to for i := 0 to n do for j := 0 to n do)
+    let i: i32 = 0; // Initialize local i for this frame from 0
+    loop i_loop { // Label at the start of the outer drawing loop
+        // Loop body
+
+        let j: i32 = 0; // Initialize local j for this frame from 0
+        loop j_loop { // Label at the start of the inner drawing loop
+             // Loop body
+
+            // Calculations based on BCX version:
+            // u = SIN(i + v) + SIN(r * i + x)
+            // v = COS(i + v) + COS(r * i + x)
+            // x = u + t
+
+            let i_f32: f32 = i as f32; // Cast i to f32
+
+            a = i_f32 + v; // Use global v
+            b = R * i_f32 + x; // Use global x
+
+            u = sin(a) + sin(b);
+            let next_v: f32 = cos(a) + cos(b); // Calculate next_v
+
+            v = next_v; // Update global v
+            x = u + anim_t; // Update global x, adding the animation time
+
+            // Calculations for pixel color and position
+            let s_f32: f32 = s as f32; // Use global s and cast to f32
+            // Use scaling factor (now a global constant)
+
+            let draw_a: f32 = u * ScaleFactor; // Use local u and global ScaleFactor
+            let draw_b: f32 = v * ScaleFactor; // Use global v (updated) and global ScaleFactor
+
+            // Pixel coordinates, rounded and offset (center 320/2=160, 240/2=120)
+            // CenterX_MicroW8 and CenterY_MicroW8 are now global constants
+
+            let px: i32 = nearest(draw_a) as i32 + CenterX_MicroW8;
+            let py: i32 = nearest(draw_b) as i32 + CenterY_MicroW8;
+
+            // --- Pixel Color Calculation using (i + j) % 256 ---
+            // Map combination of i and j to a palette index 0-255
+            let pixel_color: i32 = (i + j) % 256;
+
+
+            // Draw the pixel
+            setPixel(px, py, pixel_color);
+
+            // Increment j and check condition for next inner loop iteration
+            j += 1; // Increment local j
+            branch_if j <= N: j_loop; // Continue inner loop if j is still <= N
+        }
+        // Inner loop exits naturally when j becomes N+1. NO LABEL NEEDED HERE.
+
+        // Increment i and check condition for next outer loop iteration
+        i += 1; // Increment local i
+        branch_if i <= N: i_loop; // Continue outer loop if i is still <= N
+    }
+    // Outer loop exits naturally when i becomes N+1. NO LABEL NEEDED HERE.
+
+    // --- Update animation time at the end of the frame ---
+    anim_t = anim_t + Impedance; // Use global Impedance
+
+
+    // Read time after drawing loop
+    time2 = TIME_MS!0;
+
+    // Calculate elapsed time and display it (equivalent to NeoSetTextColor, GotoXY, write)
+    setTextColor(16); // Set text color (using index 16)
+    setCursorPosition(0, 0); // Set cursor to top-left (char coordinates in normal mode)
+
+    // Calculate elapsed time in desired unit (assuming it was centiseconds in Pascal)
+    let elapsed_time_ms: i32 = time2 - time1;
+    let elapsed_time_centi: i32 = elapsed_time_ms / 100; // Integer division
+
+    // Print the elapsed time
+    // printInt(elapsed_time_centi); // Print integer value
+
+    // The upd function finishes here and will be called again next frame.
+}
