@@ -1,0 +1,121 @@
+// Dual Chess Zoomrotator with Conditional XOR blending for MicroW8 in CurlyWASM
+// Implemented by MicroW8 Developer
+
+// Import necessary MicroW8 API functions
+import "env.memory" memory(4); // Use 4 pages (256KB) of memory
+import "env.time" fn time() -> f32; // Get current time for animation
+import "env.sin" fn sin(f32) -> f32; // Sine function
+import "env.cos" fn cos(f32) -> f32; // Cosine function
+import "env.setPixel" fn setPixel(i32, i32, i32); // Set pixel color
+import "env.cls" fn cls(i32); // Clear screen
+
+// --- Constants ---
+const SCREEN_WIDTH: i32 = 320;
+const SCREEN_HEIGHT: i32 = 240;
+const CENTER_X: f32 = 160.0; // Screen center X (float)
+const CENTER_Y: f32 = 120.0; // Screen center Y (float)
+
+// Parameters for Plane 1 (Foreground)
+const CHECKERBOARD_SCALE_1: f32 = 80.0; // Smaller value = larger squares = appears closer
+const ZOOM_SPEED_1: f32 = 1.5;
+const ROTATE_SPEED_1: f32 = -0.2;
+// Color factor for Plane 1's "black" squares (used in XOR blending)
+const COLOR_FACTOR_1: i32 = 0xf8; // Cyan (used for XOR on black squares of Plane 1)
+// Opaque color for Plane 1's "white" squares
+const COLOR_PLANE1_WHITE_OPAQUE: i32 = 255; // White (or 0xF8 from palette)
+
+
+// Parameters for Plane 2 (Background)
+const CHECKERBOARD_SCALE_2: f32 = 40.0; // Larger value = smaller squares = appears farther
+const ZOOM_SPEED_2: f32 = 0.8; // Different speed for distinct motion
+const ROTATE_SPEED_2: f32 = 0.5; // Different speed for distinct motion
+// Color factor for Plane 2 (used to generate colors to be XORed with Plane 1's black squares)
+const COLOR_FACTOR_2: i32 = 0x15; // Bright Red (used as color factor for Plane 2 pattern)
+
+// --- Helper function to simulate floor(f) as i32 for any f32 ---
+// WebAssembly's f32 to i32 cast is truncation.
+// This function provides a floor-like behavior needed for a consistent grid.
+fn floor_to_i32(f: f32) -> i32 {
+    let i: i32 = f as i32; // Truncate
+    // If f is negative and not exactly equal to the truncated integer i,
+    // then the true floor is i - 1.
+    if f < 0.0 & f != i as f32 {
+        i - 1
+    } else {
+        i
+    }
+}
+
+// --- Main Update Function ---
+export fn upd() {
+    // Clear the screen with black color (color index 0x00)
+    cls(0x00);
+
+    // Get the current time in seconds
+    let t: f32 = time();
+
+    // --- Plane 1 (Foreground) Calculations ---
+    let angle1: f32 = t * ROTATE_SPEED_1;
+    let s1: f32 = 1.0 + sin(t * ZOOM_SPEED_1) * 0.5; // Zoom factor oscillates
+    let cos_a1: f32 = cos(angle1);
+    let sin_a1: f32 = sin(angle1);
+    let inv_s1: f32 = 1.0 / s1;
+
+    // --- Plane 2 (Background) Calculations ---
+    let angle2: f32 = t * ROTATE_SPEED_2;
+    let s2: f32 = 1.0 + sin(t * ZOOM_SPEED_2) * 0.5; // Zoom factor oscillates
+    let cos_a2: f32 = cos(angle2);
+    let sin_a2: f32 = sin(angle2);
+    let inv_s2: f32 = 1.0 / s2;
+
+    // Loop through each pixel on the screen (px, py)
+    let py: i32 = 0;
+    loop y_loop {
+        let px: i32 = 0;
+        loop x_loop {
+            // Calculate pixel coordinates relative to the screen center
+            let xp: f32 = px as f32 - CENTER_X;
+            let yp: f32 = py as f32 - CENTER_Y;
+
+            // --- Calculate source pattern coordinates for Plane 1 ---
+            let xt1: f32 = (xp * inv_s1 * cos_a1) + (yp * inv_s1 * sin_a1);
+            let yt1: f32 = (yp * inv_s1 * cos_a1) - (xp * inv_s1 * sin_a1);
+            // Scale and get integer coordinates using floor behavior
+            let pattern_x1_scaled: f32 = xt1 / CHECKERBOARD_SCALE_1;
+            let pattern_y1_scaled: f32 = yt1 / CHECKERBOARD_SCALE_1;
+            let pattern_x1_i: i32 = floor_to_i32(pattern_x1_scaled);
+            let pattern_y1_i: i32 = floor_to_i32(pattern_y1_scaled);
+            // Get parity for Plane 1 (0 for black square, 1 for white square)
+            let p1: i32 = (pattern_x1_i + pattern_y1_i) & 1;
+
+            // --- Calculate source pattern coordinates for Plane 2 ---
+            let xt2: f32 = (xp * inv_s2 * cos_a2) + (yp * inv_s2 * sin_a2);
+            let yt2: f32 = (yp * inv_s2 * cos_a2) - (xp * inv_s2 * sin_a2);
+            // Scale and get integer coordinates using floor behavior
+            let pattern_x2_scaled: f32 = xt2 / CHECKERBOARD_SCALE_2;
+            let pattern_y2_scaled: f32 = yt2 / CHECKERBOARD_SCALE_2;
+            let pattern_x2_i: i32 = floor_to_i32(pattern_x2_scaled);
+            let pattern_y2_i: i32 = floor_to_i32(pattern_y2_scaled);
+            // Get color value from Plane 2 (0 or COLOR_FACTOR_2 based on parity)
+            let color_plane2: i32 = ((pattern_x2_i + pattern_y2_i) & 1) * COLOR_FACTOR_2;
+
+            // --- Determine final color based on Plane 1 parity ---
+            let final_color: i32;
+            if p1 == 0 { // If Plane 1 is a "black" square
+                // XOR Plane 2 color with COLOR_FACTOR_1 (Cyan)
+                final_color = color_plane2 ^ COLOR_FACTOR_1;
+            } else { // If Plane 1 is a "white" square
+                // Use solid opaque color (White)
+                final_color = COLOR_PLANE1_WHITE_OPAQUE;
+            }
+
+            // Set the pixel color on the screen
+            setPixel(px, py, final_color);
+
+            // Move to the next column
+            branch_if (px := px + 1) < SCREEN_WIDTH: x_loop;
+        }
+        // Move to the next row
+        branch_if (py := py + 1) < SCREEN_HEIGHT: y_loop;
+    }
+}

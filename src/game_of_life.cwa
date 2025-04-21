@@ -1,0 +1,166 @@
+// Game of Life ported to MicroW8
+// Original code in AssemblyScript/WASM
+// https://www.assemblyscript.org/examples/game-of-life.html
+// Ported to CurlyWASM by MicroW8 Developer (Gem Gemini 2.5 Flash)
+
+// Import MicroW8 memory and random function
+import "env.memory" memory(4); // Use 4 pages (256KB) for front and back buffers
+import "env.randomf" fn randomf() -> f32;
+
+// MicroW8 screen constants
+const SCREEN_WIDTH: i32 = 320;
+const SCREEN_HEIGHT: i32 = 240;
+
+// Memory addresses for frame buffers
+const FRAMEBUFFER: i32 = 0x78; // Front buffer (displayed)
+const BACKBUFFER: i32 = 0x14000; // Back buffer (User memory area)
+
+// Game of Life color constants (using 8-bit palette indices)
+const COLOR_ALIVE_START: i32 = 255; // Highest color index for alive cells
+const COLOR_ALIVE_THRESHOLD: i32 = 128; // Color index threshold for alive/dead
+const BIT_ROT: i32 = 8; // Amount to decrement color index when rotting
+
+// Helper function to get pixel color from a specified buffer with wrap-around
+fn get(buffer_base: i32, x: i32, y: i32) -> i32 {
+    // Calculate coordinates with wrap-around
+    let wrapped_x = if x < 0 { SCREEN_WIDTH - 1 } else if x >= SCREEN_WIDTH { 0 } else { x };
+    let wrapped_y = if y < 0 { SCREEN_HEIGHT - 1 } else if y >= SCREEN_HEIGHT { 0 } else { y };
+    // Load byte color index from memory
+    (buffer_base + wrapped_y * SCREEN_WIDTH + wrapped_x)?0
+}
+
+// Helper function to set pixel color in a specified buffer
+fn set(buffer_base: i32, x: i32, y: i32, color: i32) {
+    // Store byte color index to memory
+    (buffer_base + y * SCREEN_WIDTH + x)?0 = color;
+}
+
+// Initialization function: sets initial random state in both buffers
+fn init() {
+    let y: i32 = 0;
+    loop init_y_loop {
+        let x: i32 = 0;
+        loop init_x_loop {
+            let random_val: f32 = randomf();
+            let initial_color: i32;
+            // Initialize with a probability of being alive
+            if random_val > 0.7 { // Probability 30% to be alive
+                initial_color = COLOR_ALIVE_START;
+            } else {
+                initial_color = 0; // Initially dead (black color index)
+            }
+            set(FRAMEBUFFER, x, y, initial_color); // Initialize front buffer
+            set(BACKBUFFER, x, y, initial_color); // Initialize back buffer
+            branch_if (x := x + 1) < SCREEN_WIDTH: init_x_loop;
+        }
+        branch_if (y := y + 1) < SCREEN_HEIGHT: init_y_loop;
+    }
+}
+
+// Performs one step of the Game of Life
+fn step() {
+    let hm1 = SCREEN_HEIGHT - 1;
+    let wm1 = SCREEN_WIDTH - 1;
+
+    let y: i32 = 0;
+    loop step_y_loop {
+        let x: i32 = 0;
+        loop step_x_loop {
+            // Calculate neighbor coordinates with wrap-around
+            let ym1 = if y == 0 { hm1 } else { y - 1 };
+            let yp1 = if y == hm1 { 0 } else { y + 1 };
+            let xm1 = if x == 0 { wm1 } else { x - 1 };
+            let xp1 = if x == wm1 { 0 } else { x + 1 };
+
+            // Count alive neighbors (reading from FRAMEBUFFER - current state)
+            let aliveNeighbors = 0;
+            if get(FRAMEBUFFER, xm1, ym1) >= COLOR_ALIVE_THRESHOLD { aliveNeighbors += 1; }
+            if get(FRAMEBUFFER, x, ym1) >= COLOR_ALIVE_THRESHOLD { aliveNeighbors += 1; }
+            if get(FRAMEBUFFER, xp1, ym1) >= COLOR_ALIVE_THRESHOLD { aliveNeighbors += 1; }
+            if get(FRAMEBUFFER, xm1, y) >= COLOR_ALIVE_THRESHOLD { aliveNeighbors += 1; }
+            if get(FRAMEBUFFER, xp1, y) >= COLOR_ALIVE_THRESHOLD { aliveNeighbors += 1; }
+            if get(FRAMEBUFFER, xm1, yp1) >= COLOR_ALIVE_THRESHOLD { aliveNeighbors += 1; }
+            if get(FRAMEBUFFER, x, yp1) >= COLOR_ALIVE_THRESHOLD { aliveNeighbors += 1; }
+            if get(FRAMEBUFFER, xp1, yp1) >= COLOR_ALIVE_THRESHOLD { aliveNeighbors += 1; }
+
+            let self_color = get(FRAMEBUFFER, x, y);
+            let self_alive = self_color >= COLOR_ALIVE_THRESHOLD;
+
+            let next_color: i32;
+
+            // Apply Game of Life rules
+            if self_alive {
+                // Live cell
+                // Corrected logical OR: use | instead of ||
+                if aliveNeighbors < 2 | aliveNeighbors > 3 {
+                    // Dies
+                    next_color = 0; // Set to black/dead
+                } else {
+                    // Survives and rots
+                    next_color = self_color - BIT_ROT; // Decrement color index
+                    // If rotting causes color to fall below alive threshold, set to just below
+                    if next_color < COLOR_ALIVE_THRESHOLD { next_color = COLOR_ALIVE_THRESHOLD - 1; }
+                    // Ensure color doesn't go below 0
+                    if next_color < 0 { next_color = 0; }
+                }
+            } else {
+                // Dead cell
+                if aliveNeighbors == 3 {
+                    // Becomes alive
+                    next_color = COLOR_ALIVE_START; // Set to full alive color
+                } else {
+                    // Stays dead and rots
+                     next_color = self_color - BIT_ROT; // Decrement color index
+                     // Ensure color doesn't go below 0
+                     if next_color < 0 { next_color = 0; }
+                }
+            }
+
+            // Set the calculated next color in the BACKBUFFER
+            set(BACKBUFFER, x, y, next_color);
+
+            branch_if (x := x + 1) < SCREEN_WIDTH: step_x_loop;
+        }
+        branch_if (y := y + 1) < SCREEN_HEIGHT: step_y_loop;
+    }
+
+    // Copy back buffer to front buffer to display the new state
+    let i: i32 = 0;
+    let screen_size = SCREEN_WIDTH * SCREEN_HEIGHT;
+    loop copy_loop {
+        let color = (BACKBUFFER + i)?0; // Load byte from back buffer
+        (FRAMEBUFFER + i)?0 = color; // Store byte to front buffer
+        branch_if (i := i + 1) < screen_size: copy_loop;
+    }
+}
+
+// Optional function to fill a row and column with random live cells
+// (Modifies the BACKBUFFER)
+export fn fill(fx: i32, fy: i32, p: f32) {
+     let x: i32 = 0;
+     loop fill_x_loop {
+         if randomf() < p {
+             set(BACKBUFFER, x, fy, COLOR_ALIVE_START); // Set to alive in back buffer
+         }
+         branch_if (x := x + 1) < SCREEN_WIDTH: fill_x_loop;
+     }
+     let y: i32 = 0;
+      loop fill_y_loop {
+          if randomf() < p {
+              set(BACKBUFFER, fx, y, COLOR_ALIVE_START); // Set to alive in back buffer
+          }
+          branch_if (y := y + 1) < SCREEN_HEIGHT: fill_y_loop;
+      }
+}
+
+
+// MicroW8 entry point: called once on module load
+export fn start() {
+    init(); // Initialize the game state
+}
+
+// MicroW8 entry point: called each frame
+export fn upd() {
+    // cls(0); // Clearing the screen is not necessary with full buffer update
+    step(); // Perform one Game of Life step
+}

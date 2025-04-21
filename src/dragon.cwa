@@ -1,0 +1,136 @@
+/*
+ *  Dragon Fractal Generator
+ *
+ *  This code generates and draws a Dragon fractal using a recursive algorithm.
+ *  The fractal is constructed by repeatedly replacing each line segment
+ *  with two shorter segments at a right angle to each other, with a turn
+ *  in the middle. The direction of the turn alternates with each iteration.
+ *  The drawing is done by recursively subdividing the segments until a
+ *  base case (single segment) is reached, at which point the segment is drawn.
+ *  Pre-calculated sine and cosine values are stored in memory for efficient
+ *  angle calculations.
+ *
+ *  https://github.com/tebe6502/Mad-Pascal/blob/pas2js/samples/neo6502/grapx/dragon.pas
+ *
+ */
+
+// Include common definitions and functions
+include "../include/common.cwa"
+
+// Base color value for drawing
+const COLOR_BASE = 0x00;
+// Size of data elements (float is 4 bytes)
+const DATA_SIZE = 4;
+
+// Memory address for sine values (start of USER_MEM)
+const SIN = USER_MEM;
+// Memory address for cosine values (8 float values after SIN)
+const COS = SIN + 8 * DATA_SIZE;
+
+// Constant for scaling the length in each recursive step 1/sqrt(2) or sin(45)
+const S = 0.707106781;
+// Initial separation/length of the first segment
+const SEP = 120.0;
+// Starting X coordinate for the drawing
+const X_START = SEP * 4.0 / 6.0;
+// Starting Y coordinate for the drawing
+const Y_START = SEP;
+// Constant for offsetting coordinates for drawing
+const HALF = 0.5;
+
+// Global mutable counter used for coloring the segments
+global mut c: i32 = 0;
+
+/*
+ * Draws a segment of the Dragon curve recursively.
+ *
+ * Args:
+ *  n: Current recursion depth. The fractal is drawn down to depth 1.
+ *  a: Current direction index (integer 0-7), representing an angle
+ *  (0, 45, 90, ..., 315 degrees) used to look up sin/cos from USER_MEM.
+ *  t: Turn direction for the next segment from this point.
+ *  1 typically means turn right (add angle step), -1 means turn left (subtract angle step).
+ *  d: Current length of the segment to be drawn at the base case,
+ *  or the length of the two sub-segments in the recursive step.
+ *  x: Starting x-coordinate of the current segment.
+ *  y: Starting y-coordinate of the current segment.
+ */
+fn dragon(n: i32, a: i32, t: i32, d: f32, x: f32, y: f32) {
+    // Define a named block for branching back for potential tail recursion optimization
+    block recursion {
+        // Get sine value from memory based on angle index 'a'
+        let inline _sin = (a * DATA_SIZE)$SIN;
+        // Get cosine value from memory based on angle index 'a'
+        let inline _cos = (a * DATA_SIZE)$COS;
+
+        // Base case of the recursion: when depth n is 1 or less, draw the segment
+        if n <= 1 {
+            line(
+                x + HALF, // Start x with offset for pixel center
+                y + HALF, // Start y with offset for pixel center
+                x + d * _cos + HALF, // End x calculated using distance and angle, with offset
+                y + d * _sin + HALF, // End y calculated using distance and angle, with offset
+                COLOR_BASE + (c & 0xff) // Color based on the counter 'c', using 8 bits for variation
+            );
+            // Branch back to the start of the recursion block (tail call optimization)
+            branch recursion;
+        }
+
+        // Recursive step: subdivide the current segment
+
+        // Scale the segment length by S (1/sqrt(2)) for the next level
+        d *= S;
+        // Increment the color counter for the next segments
+        c += 1;
+
+        // Calculate the new direction index for the first sub-segment
+        // Based on current direction 'a' and turn 't', wrapped around 0-7
+        let inline a1 = (a - t) & 7;
+        // Calculate the new direction index for the second sub-segment
+        // Based on current direction 'a' and turn 't', wrapped around 0-7
+        let inline a2 = (a + t) & 7;
+
+        // Calculate the starting y-coordinate for the second recursive call.
+        // This is the end point of the first sub-segment.
+        let inline yy = y + d * (a * DATA_SIZE)$SIN;
+        // Calculate the starting x-coordinate for the second recursive call.
+        // This is the end point of the first sub-segment.
+        let inline xx = x + d * (a * DATA_SIZE)$COS;
+
+        // First recursive call: Draw the first sub-segment
+        // (n-1) is the next depth, a1 is the new direction, 1 sets the turn for the next level's first branch,
+        // d is the scaled length, (x, y) is the starting point.
+        dragon(n - 1, a1,  1, d,  x,  y);
+
+        // Second recursive call: Draw the second sub-segment
+        // (n-1) is the next depth, a2 is the new direction, -1 sets the turn for the next level's second branch,
+        // d is the scaled length, (xx, yy) is the starting point (end of the first sub-segment).
+        dragon(n - 1, a2, -1, d, xx, yy);
+    }
+}
+
+// Exported function: the entry point of the program
+export fn start() {
+    // Initiate the drawing of the Dragon fractal
+    // n=14 (maximum recursion depth), a=0 (initial direction 0 degrees), t=1 (initial turn right),
+    // d=SEP (initial total length), (X_START, Y_START) (starting position of the first segment).
+    dragon(14, 0, 1, SEP, X_START, Y_START);
+}
+
+// Exported function: called for updates or animation frames (currently does nothing)
+export fn upd() {
+}
+
+// User memory section used to store constant data
+data USER_MEM {
+    // Pre-calculated sine values for angles corresponding to indices 0-7:
+    // 0 (0 deg), S (45 deg), 1.0 (90 deg), S (135 deg), 0.0 (180 deg), -S (225 deg), -1.0 (270 deg), -S (315 deg)
+    f32(
+        0.0,  S, 1.0,  S, 0.0, -S, -1.0, -S
+    )
+    // Pre-calculated cosine values for angles corresponding to indices 0-7:
+    // 1.0 (0 deg), S (45 deg), 0.0 (90 deg), -S (135 deg), -1.0 (180 deg), -S (225 deg), 0.0 (270 deg), S (315 deg)
+    f32(
+        1.0,  S, 0.0, -S, -1.0, -S, 0.0,  S
+    )
+}
