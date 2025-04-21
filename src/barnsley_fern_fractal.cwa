@@ -1,0 +1,117 @@
+// Barnsley Fern Fractal Generator using Chaos Game
+// Implemented for MicroW8 in CurlyWASM
+
+// include "../include/microw8-api.cwa"
+
+// Import necessary functions
+import "env.memory" memory(4); // Use 4 pages (256KB)
+import "env.setPixel" fn setPixel(i32, i32, i32); // To draw individual pixels
+import "env.randomf" fn randomf() -> f32; // For random transformation selection
+import "env.cls" fn cls(i32); // To clear the screen initially
+
+// Screen dimensions
+const SCREEN_WIDTH: i32 = 320;
+const SCREEN_HEIGHT: i32 = 240;
+
+// Fractal drawing parameters
+const ITERATIONS_PER_FRAME: i32 = 1000; // Number of points to draw per frame
+const SCALE_X: f32 = 40.0; // Scaling factor to map fractal X to screen X
+const SCALE_Y: f32 = -24.0; // Scaling factor to map fractal Y to screen Y (negative to flip Y axis)
+const OFFSET_X: f32 = 160.0; // Offset to center the fractal on screen X
+const OFFSET_Y: f32 = 230.0; // Offset to move the base of the fern to the bottom of screen Y
+const COLOR: i32 = 10; // Color index for the fern (e.g., green)
+
+// Affine transformations coefficients (a, b, c, d, e, f) stored in memory
+// Order: a, b, c, d, e, f for each transformation
+// Transformations data starts at USER_MEM
+const TRANSFORMATIONS_DATA = 0x14000;
+// Each transformation has 6 float coefficients (6 * 4 bytes = 24 bytes)
+const TRANSFORM_SIZE: i32 = 24;
+
+// Probabilities thresholds (cumulative)
+// Transform 0: 0.01
+// Transform 1: 0.01 + 0.07 = 0.08
+// Transform 2: 0.08 + 0.07 = 0.15
+// Transform 3: 0.15 + 0.85 = 1.00
+const PROB_THRESH1: f32 = 0.01;
+const PROB_THRESH2: f32 = 0.08;
+const PROB_THRESH3: f32 = 0.15;
+
+// Global mutable variables for the current point (x, y)
+global mut current_x: f32 = 0.0;
+global mut current_y: f32 = 0.0;
+
+// Initialization function - called once at the start
+export fn start() {
+    cls(0); // Clear the screen to black
+    // Initial point can be any point, often (0, 0) is used.
+    current_x = 0.0;
+    current_y = 0.0;
+}
+
+// Main update function - called each frame
+export fn upd() {
+    let i: i32 = 0;
+    loop iteration_loop {
+        // 1. Choose a transformation randomly
+        let r: f32 = randomf(); // Get a random float between 0.0 and 1.0
+
+        let transform_index: i32;
+        if r < PROB_THRESH1 {
+            transform_index = 0; // Transform 0 (stem)
+        } else if r < PROB_THRESH2 {
+            transform_index = 1; // Transform 1 (left leaf)
+        } else if r < PROB_THRESH3 {
+            transform_index = 2; // Transform 2 (right leaf)
+        } else {
+            transform_index = 3; // Transform 3 (upper leaf)
+        }
+
+        // Calculate memory offset for the chosen transformation's coefficients
+        let transform_offset = TRANSFORMATIONS_DATA + transform_index * TRANSFORM_SIZE;
+
+        // Load coefficients for the chosen transformation
+        let a: f32 = (transform_offset + 0 * 4)$0; // a coefficient
+        let b: f32 = (transform_offset + 1 * 4)$0; // b coefficient
+        let c_val: f32 = (transform_offset + 2 * 4)$0; // c coefficient (using c_val to avoid name conflict with const c)
+        let d: f32 = (transform_offset + 3 * 4)$0; // d coefficient
+        let e: f32 = (transform_offset + 4 * 4)$0; // e coefficient
+        let f: f32 = (transform_offset + 5 * 4)$0; // f coefficient
+
+        // 2. Apply the transformation to the current point (current_x, current_y)
+        let next_x: f32 = a * current_x + b * current_y + e;
+        let next_y: f32 = c_val * current_x + d * current_y + f;
+
+        // Update the current point
+        current_x = next_x;
+        current_y = next_y;
+
+        // 3. Map the new point to screen coordinates and draw it
+        // The fractal coordinates are typically in a range like X [-2.18, 2.66] and Y [0, 9.99].
+        // We scale and offset these to fit the 320x240 screen.
+        let screen_x: i32 = (current_x * SCALE_X + OFFSET_X) as i32;
+        let screen_y: i32 = (current_y * SCALE_Y + OFFSET_Y) as i32;
+
+        // Draw the pixel if it's within screen bounds
+        if screen_x >= 0 & screen_x < SCREEN_WIDTH & screen_y >= 0 & screen_y < SCREEN_HEIGHT {
+            setPixel(screen_x, screen_y, COLOR);
+        }
+
+        // Repeat for the specified number of iterations per frame
+        branch_if (i := i + 1) < ITERATIONS_PER_FRAME: iteration_loop;
+    }
+}
+
+// Data section to store the coefficients for the four affine transformations
+data TRANSFORMATIONS_DATA {
+    f32(
+        // Transform 0 (Stem - P = 0.01)
+        0.0,  0.0,  0.0,  0.16, 0.0,  0.0,
+        // Transform 1 (Left Leaf - P = 0.07)
+        0.2, -0.26, 0.23, 0.22, 0.0,  1.6,
+        // Transform 2 (Right Leaf - P = 0.07)
+       -0.15, 0.28, 0.26, 0.24, 0.0,  0.44,
+        // Transform 3 (Upper Leaf - P = 0.85)
+        0.85, 0.04, -0.04, 0.85, 0.0,  1.6
+    )
+}

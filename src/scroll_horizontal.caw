@@ -1,0 +1,82 @@
+include "../include/microw8-api.cwa"
+
+// Display configuration constants
+const SCALE = 2;          // Text scaling factor (original font is 8x8 pixels)
+const COLOR_WHITE = 0xF8; // White in MicroW8's RGB palette
+const COLOR_BLACK = 0x00; // Black color
+
+// Screen dimensions (dual representation for integer/float APIs)
+const SCR_X = 320;        // Screen width in pixels (i32 for integer operations)
+const SCR_Y = 240;        // Screen height in pixels (i32)
+const SCR_X_F = 320.0;    // Screen width (f32 for floating-point functions)
+const SCR_Y_F = 240.0;    // Screen height (f32)
+
+// Text rendering parameters
+const CHAR_SIZE = 4 * SCALE;           // Effective character size after scaling (4x base size)
+const X_START = 160;                   // Initial X position (right-aligned, in half-pixels due to text mode)
+const X_END = 1;                       // Final X position (left edge)
+const Y_START = SCR_Y / 2 - CHAR_SIZE; // Centered vertically with scaling adjustment
+const SCR_W = SCR_X / CHAR_SIZE * 2;   // Screen width in character units (adjusted for scaling)
+
+// Memory addresses for text control (USER_MEM starts at 0x14000)
+const TEXT_CTRL = USER_MEM + 7;  // Control sequence start address
+const X_CTRL = USER_MEM + 8;     // X coordinate storage (modified during scrolling)
+const Y_CTRL = USER_MEM + 9;     // Y coordinate storage
+const TEXT = USER_MEM + 11;      // Text buffer start address
+
+// Animation state variables
+global mut text_offset = 0;   // Current position in text buffer
+
+// Initialization function (runs once at startup)
+export fn start() {
+    // Execute initialization sequence from USER_MEM:
+    // 1. Clear screen (12)
+    // 2. Switch to graphics text mode (5)
+    // 3. Set text scale (30 + SCALE)
+    // 4. Set text color (15 + COLOR_WHITE)
+    printString(USER_MEM);
+}
+
+// Main update loop (runs every frame)
+export fn upd() {
+    // Scrolling phase logic
+    if X_CTRL?0 >= X_END {
+        // Clear screen without flicker (using rectangle instead of cls)
+        rectangle(1.0, 1.0, SCR_X_F, SCR_Y_F, COLOR_BLACK);
+
+        // Render text at current position:
+        // 1. Set cursor position via control sequence (31, X, Y)
+        // 2. Print text from current offset
+        printString(TEXT_CTRL);
+        printString(TEXT + text_offset);
+
+        // Move text left by decrementing X coordinate
+        X_CTRL?0 = X_CTRL?0 - 1;
+    } else {
+        // Text transition phase - prepare next character
+        X_CTRL?0 = X_END + CHAR_SIZE - 1;  // Move X, by char size, to the right
+        text_offset += 1;  // Advance to next character
+
+        // Handle text wrap-around
+        if text_offset?TEXT == 0 { // Check for null terminator
+            X_CTRL?0 = X_START;    // Reset X position
+            text_offset = 0;       // Reset text position
+        }
+    }
+}
+
+// Memory initialization data
+data USER_MEM {
+    // Initialization control sequence:
+    i8(12, 5, 30, SCALE)  // [cls, graphics mode, text scale]
+    i8(15, COLOR_WHITE)   // [text color]
+    i8(0)                 // Sequence terminator
+
+    // Text position control sequence:
+    i8(31, X_START, Y_START)  // [set cursor, X, Y]
+    i8(0)                     // Sequence terminator
+
+    // Scroll text content (null-terminated):
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    i8(0)  // String terminator
+}

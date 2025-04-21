@@ -1,0 +1,98 @@
+// Import necessary MicroW8 functions and memory
+import "env.memory" memory(4);         // Request 4 pages (256KB) of memory
+// Although setPixel is imported, we use direct memory access for speed.
+import "env.setPixel" fn setPixel(i32, i32, i32);
+import "env.cls" fn cls(i32);           // To clear the screen initially
+import "env.time" fn time() -> f32;     // Import time function for animation [MicroW8-doc.txt source 200]
+
+// --- Constants ---
+const SCREEN_WIDTH: i32 = 320;          // Screen width in pixels (integer)
+const SCREEN_HEIGHT: i32 = 240;         // Screen height in pixels (integer)
+const SCREEN_WIDTH_F: f32 = 320.0;      // Screen width in pixels (float)
+const SCREEN_HEIGHT_F: f32 = 240.0;     // Screen height in pixels (float)
+const SCREEN_SIZE: i32 = SCREEN_WIDTH * SCREEN_HEIGHT; // Total pixels
+const FRAMEBUFFER: i32 = 0x78;          // Start address of the framebuffer [MicroW8-doc.txt source 152]
+
+const MAX_ITER: i32 = 32;               // Maximum iterations per pixel
+const ESCAPE_RADIUS_SQ: f32 = 4.0;      // Escape radius squared (2*2)
+
+// Region of the complex plane to render
+const X_MIN: f32 = -2.0;
+const X_MAX: f32 = 0.6;
+const Y_MIN: f32 = -1.2;
+const Y_MAX: f32 = 1.2;
+
+// Precalculate scaling factors (using float literals as per user's correction)
+const X_SCALE: f32 = (X_MAX - X_MIN) / SCREEN_WIDTH_F;
+const Y_SCALE: f32 = (Y_MAX - Y_MIN) / SCREEN_HEIGHT_F;
+
+// Animation speed for color cycling
+const COLOR_CYCLE_SPEED: f32 = 10.0;    // Adjust this value to change animation speed
+
+// --- Main Update Function ---
+export fn upd() {
+    // Get current time for animation frame
+    let current_time_f: f32 = time();
+    // Calculate a time-based offset for color cycling
+    // Multiply time by speed and cast to integer
+    let time_offset_i: i32 = (current_time_f * COLOR_CYCLE_SPEED) as i32;
+
+    let i: i32 = 0; // Pixel index (0 to SCREEN_SIZE - 1)
+
+    loop screen_loop { // Loop through all pixels
+        let px: i32 = i % SCREEN_WIDTH;  // Calculate pixel X coordinate
+        let py: i32 = i / SCREEN_WIDTH;  // Calculate pixel Y coordinate
+
+        // Map pixel coordinates (px, py) to complex plane point (x0, y0)
+        let x0: f32 = X_MIN + (px as f32) * X_SCALE;
+        let y0: f32 = Y_MIN + (py as f32) * Y_SCALE;
+
+        // Mandelbrot iteration variables
+        let x: f32 = 0.0;
+        let y: f32 = 0.0;
+        let iter: i32 = 0;
+
+        loop mandel_iter { // Inner loop for Mandelbrot calculation
+            // Check if the point escaped
+            let x_sq = x * x;
+            let y_sq = y * y;
+            if (x_sq + y_sq) > ESCAPE_RADIUS_SQ {
+                // Point escaped, exit inner loop (by not branching back)
+            } else {
+                // Point hasn't escaped yet
+                // Check if max iterations reached
+                if iter < MAX_ITER {
+                    // Calculate next iteration: z = z^2 + c
+                    let xtemp: f32 = x_sq - y_sq + x0;
+                    y = 2.0 * x * y + y0;
+                    x = xtemp;
+
+                    iter += 1;
+                    // Continue inner loop
+                    branch mandel_iter;
+                }
+                // Max iterations reached without escaping, exit inner loop
+            }
+        } // End of mandel_iter loop
+
+        // Determine the color based on the number of iterations and time
+        let color: i32;
+        if iter == MAX_ITER {
+            // Point is likely inside the set
+            color = 0; // Black
+        } else {
+            // Point is outside the set
+            // Animate color based on iteration count and time offset
+            // Add the time offset before masking and ensure color is not 0
+            color = ((iter + time_offset_i) & 15) + 1; // Cycle colors 1-16
+        }
+
+        // Write the color directly to the framebuffer memory
+        // Address = FRAMEBUFFER + pixel_index
+        // Operator '?' writes a byte [CurlyWASM-doc.txt source 125]
+        (FRAMEBUFFER + i)?0 = color;
+
+        // Go to the next pixel
+        branch_if (i := i + 1) < SCREEN_SIZE: screen_loop;
+    } // End of screen_loop
+}

@@ -1,0 +1,108 @@
+// Import necessary MicroW8 API functions and memory
+import "env.memory" memory(4); // Request 4 pages (256KB) of memory
+import "env.cls" fn cls(i32); // To clear the screen
+import "env.time" fn time() -> f32; // Import time function for animation
+import "env.sin" fn sin(f32) -> f32; // Sine function
+import "env.cos" fn cos(f32) -> f32; // Cosine function
+import "env.setPixel" fn setPixel(i32, i32, i32); // Function to draw individual pixels
+import "env.fmod" fn fmod(f32, f32) -> f32; // Import fmod for phase wrapping
+
+// Import mathematical constant PI (assuming it's available via platform include or similar)
+// If not available, define manually: const PI: f32 = 3.14159265;
+const PI: f32 = 3.14159265;
+
+
+// --- Constants ---
+const SCREEN_WIDTH_F: f32 = 320.0; // Screen width in pixels (float)
+const SCREEN_HEIGHT_F: f32 = 240.0; // Screen height in pixels (float)
+const CENTER_X: f32 = SCREEN_WIDTH_F / 2.0; // X-coordinate of the screen center
+const CENTER_Y: f32 = SCREEN_HEIGHT_F / 2.0; // Y-coordinate of the screen center
+
+// Number of points to animate
+const NUM_POINTS: i32 = 512; // Let's animate 512 points
+
+// Base parameters for point motion (same for all points)
+const BASE_AMPLITUDE_X: f32 = 100.0; // Controls the width of the pattern
+const BASE_AMPLITUDE_Y: f32 = 80.0;  // Controls the height of the pattern
+const BASE_FREQUENCY_X: f32 = 1.0;  // Base frequency for X
+const BASE_FREQUENCY_Y: f32 = 2.0;  // Base frequency for Y (Ratio BASE_FREQUENCY_X/BASE_FREQUENCY_Y is important for shape)
+const BASE_PHASE_OFFSET_Y: f32 = PI / 2.0; // Phase offset for Y to use cosine-like movement
+
+// Parameters controlling the shape formed by all points
+const NUM_CYCLES_X: f32 = 3.0; // How many X cycles the points cover (integer or float ratio)
+const NUM_CYCLES_Y: f32 = 2.0; // How many Y cycles the points cover (integer or float ratio)
+
+// Speed at which the overall pattern animates/rotates
+const PATTERN_ANIM_SPEED: f32 = 0.5;
+
+// Color range for the points
+const COLOR_BASE: i32 = 0xf0; // Starting color index
+const COLOR_RANGE_SIZE: f32 = 16.0; // Number of colors in the range (0xf0 to 0xff)
+
+// Speed at which the color gradient travels along the curve
+const COLOR_TRAVEL_SPEED: f32 = 2.0; // Controls how fast the color animates along the shape
+
+
+// --- Initialization Function ---
+// Called once when the module is loaded
+export fn start() {
+    // No specific initialization needed for this effect.
+}
+
+// --- Main Update Function ---
+// Called each frame to render the effect
+export fn upd() {
+    // Clear the screen with black color (color index 0)
+    cls(0);
+
+    // Get current time for animation
+    let current_time: f32 = time();
+
+    // Calculate the base phase offset that animates the entire pattern over time
+    let time_phase: f32 = current_time * PATTERN_ANIM_SPEED;
+
+    // Loop through each point
+    let i: i32 = 0;
+    loop point_loop { // Loop over the number of points
+        // Convert index to float for calculations
+        let inline point_f = i as f32;
+
+        // Calculate the point's position along the 'parametric time' of the pattern
+        // This phase distributes points along the Lissajous curve
+        let inline pattern_phase = 2.0 * PI * point_f / NUM_POINTS as f32;
+
+        // Calculate the total phase for the X and Y components for this point
+        // This combines the point's position on the curve and the overall animation phase
+        let inline total_phase_x: f32 = (BASE_FREQUENCY_X * time_phase) + (NUM_CYCLES_X * pattern_phase);
+        let inline total_phase_y: f32 = (BASE_FREQUENCY_Y * time_phase) + (NUM_CYCLES_Y * pattern_phase) + BASE_PHASE_OFFSET_Y;
+
+        // --- Color Calculation ---
+        // Calculate the phase used for coloring, incorporating time for animation
+        let inline color_phase = pattern_phase + current_time * COLOR_TRAVEL_SPEED;
+
+        // Use the color_phase to determine the color, wrapping it around 2*PI
+        // Map the wrapped phase (0 to 2*PI) to the color range (0 to COLOR_RANGE_SIZE - 1)
+        let inline wrapped_color_phase = fmod(color_phase, 2.0 * PI);
+        // Ensure wrapped_color_phase is non-negative
+        let inline positive_wrapped_color_phase = if wrapped_color_phase < 0.0 { wrapped_color_phase + 2.0 * PI } else { wrapped_color_phase };
+
+        // Map the phase to a value between 0.0 and COLOR_RANGE_SIZE - 1.0
+        let inline color_f = positive_wrapped_color_phase / (2.0 * PI) * (COLOR_RANGE_SIZE - 1.0);
+
+        // Convert to integer color index and add the base color offset
+        let inline color_index: i32 = COLOR_BASE + (color_f as i32);
+
+
+        // --- Position Calculation ---
+        // Calculate the current point position (x, y) using fixed amplitudes and base frequencies
+        let inline current_x: f32 = CENTER_X + BASE_AMPLITUDE_X * sin(total_phase_x);
+        let inline current_y: f32 = CENTER_Y + BASE_AMPLITUDE_Y * cos(total_phase_y); // Using cos for Y gives elliptical/Lissajous shapes
+
+        // Draw the pixel at the calculated position with the calculated color
+        // Convert float coordinates to integer pixel coordinates
+        setPixel(current_x as i32, current_y as i32, color_index);
+
+        // Move to the next point
+        branch_if (i := i + 1) < NUM_POINTS: point_loop;
+    }
+}

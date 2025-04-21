@@ -1,0 +1,175 @@
+// MicroW8 CurlyWASM version of the MadPascal Twister effect
+// Converted by MicroW8 Developer from the provided MadPascal code
+// Target platform: MicroW8 fantasy console
+
+// Import necessary MicroW8 API functions
+import "env.memory" memory(4);
+import "env.cls" fn cls(i32);         // Clears the screen
+import "env.hline" fn hline(i32, i32, i32, i32); // Draws horizontal lines
+import "env.sin" fn sin(f32) -> f32;         // Computes the sine of an angle (in radians)
+
+// Define constants for screen dimensions and effect parameters
+const SCREEN_WIDTH      = 320;
+const SCREEN_HEIGHT     = 240;
+const SCREEN_CENTER_X   = SCREEN_WIDTH / 2;   // 160
+const SCREEN_CENTER_Y   = SCREEN_HEIGHT / 2;  // 120
+const ANGLE_90          = 64;             // Phase offset for 90 degrees (out of 256)
+const ANGLE_180         = 128;            // Phase offset for 180 degrees (out of 256)
+const ANGLE_270         = 192;            // Phase offset for 270 degrees (out of 256)
+const SINE_TABLE_SIZE   = 256;            // Size of the sine lookup table
+const SINE_TABLE_MASK   = SINE_TABLE_SIZE - 1; // Mask for wrap-around
+const SINE_TABLE_ADDR   = 0x14000;        // Memory address for the sine table (in user memory)
+
+// Constants for base animation speeds
+const OFFSET_X_BASE_SPEED_1: f32 = 2.0;
+const OFFSET_Y_BASE_SPEED_1: f32 = 3.0;
+const OFFSET_X_BASE_SPEED_2: f32 = 3.0;
+const OFFSET_Y_BASE_SPEED_2: f32 = 2.0;
+
+// Constant to control the overall twist speed (adjust this value)
+// Mniejsza wartość = wolniejsze skręcanie, większa wartość = szybsze skręcanie
+const TWIST_SPEED_FACTOR: f32 = 0.5; // Przykładowa wartość: spowolnienie dwukrotne
+
+// Global mutable variables for animation offsets (zmienione na f32)
+global mut animationOffsetX: f32 = 0.0;
+global mut animationOffsetY: f32 = 65.0; // Początkowa wartość z Pascala, zmieniona na f32
+
+//-----------------------------------------------------------------------------
+// Function to precompute and fill the sine lookup table in memory
+//-----------------------------------------------------------------------------
+fn fillSinTable(adr: i32, size: i32) {
+    let i = 0;
+    let pi: f32 = 3.1415926535; // More precise Pi
+    let f = (2.0 * pi) / (size as f32); // Factor to map 0-size to 0-2*pi
+
+    loop fill_loop {
+        // Calculate sine value scaled to roughly -127 to 127 range, offset by 128
+        // This maps to 0-255 range to fit in a byte.
+        // The scaling factor 120 is chosen based on the Pascal code's `shr 1`
+        // and screen width to get a reasonable horizontal amplitude.
+        let sine_val_f = sin(f * (i as f32)) * 120.0;
+        let sine_val_i8 = (sine_val_f + 128.0) as i32; // Offset and convert to integer
+
+        // Store as a byte in memory
+        (adr + i)?0 = sine_val_i8;
+
+        // Continue loop until all entries are filled
+        branch_if (i := i + 1) < size: fill_loop;
+    }
+}
+
+//-----------------------------------------------------------------------------
+// Function to draw one half of the twister effect (even or odd rows)
+//-----------------------------------------------------------------------------
+fn draw_half_twister(y_start_offset: i32) {
+    // Loop through the vertical index (0-119) as in the Pascal code
+    let row = 0;
+
+    loop row_loop {
+        // Calculate the current screen Y coordinate
+        let y = y_start_offset + row * 2;
+
+        // Calculate the angle for sine lookups, with wrap-around using bitmask
+        // Use the fractional part of animationOffsetY for smoother animation
+        let angle_idx_f = (row as f32) + animationOffsetY;
+        let angle_idx_i = (angle_idx_f as i32) & SINE_TABLE_MASK;
+
+        // Read byte from sine table, it's implicitly converted to i32.
+        // Use the fractional part of animationOffsetX
+        let angle = (SINE_TABLE_ADDR + angle_idx_i)?0 + (animationOffsetX as i32);
+
+        // Perform sine lookups for the four points, applying phase offsets and wrap-around
+        // Read byte from sine table, cast to i32, subtract 128 to get signed value, then divide by 2 (shr 1 equivalent)
+        let sin_angle     = (((SINE_TABLE_ADDR + (angle & SINE_TABLE_MASK))?0) as i32 - 128) / 2;
+        let sin_angle_90  = (((SINE_TABLE_ADDR + ((angle + ANGLE_90) & SINE_TABLE_MASK))?0) as i32 - 128) / 2;
+        let sin_angle_180 = (((SINE_TABLE_ADDR + ((angle + ANGLE_180) & SINE_TABLE_MASK))?0) as i32 - 128) / 2;
+        let sin_angle_270 = (((SINE_TABLE_ADDR + ((angle + ANGLE_270) & SINE_TABLE_MASK))?0) as i32 - 128) / 2;
+
+
+        // Calculate the X coordinates for the four points relative to the screen center
+        let x1 = SCREEN_CENTER_X + sin_angle;
+        let x2 = SCREEN_CENTER_X + sin_angle_90;
+        let x3 = SCREEN_CENTER_X + sin_angle_180;
+        let x4 = SCREEN_CENTER_X + sin_angle_270;
+
+        // Find the minimum and maximum X coordinates among the four points
+        let minX = x1;
+        let maxX = x1;
+
+        if x2 < minX { minX = x2; } else if x2 > maxX { maxX = x2; }
+        if x3 < minX { minX = x3; } else if x3 > maxX { maxX = x3; }
+        if x4 < minX { minX = x4; } else if x4 > maxX { maxX = x4; }
+
+        // Draw horizontal lines using the hline function
+        // hline(left: i32, right: i32, y: i32, color: i32) - right is exclusive
+        // Outer lines (color 0) - equivalent to Pascal NeoDrawLine(x1, y, x2, y)
+        hline(minX - 6, minX + 1, y, 0); // Draw from minX-6 to minX (inclusive)
+        hline(maxX, maxX + 7, y, 0);     // Draw from maxX to maxX+6 (inclusive)
+
+        // Inner lines (colors 1, 2, 3, 4) with conditions
+        if x1 < x2 { hline(x1, x2 + 1, y, 1); } // Draw from x1 to x2 (inclusive)
+        if x2 < x3 { hline(x2, x3 + 1, y, 2); } // Draw from x2 to x3 (inclusive)
+        if x3 < x4 { hline(x3, x4 + 1, y, 3); } // Draw from x3 to x4 (inclusive)
+        if x4 < x1 { hline(x4, x1 + 1, y, 4); } // Draw from x4 to x1 (inclusive)
+
+        // Continue loop until all 120 vertical indices are processed
+        branch_if (row := row + 1) < 120: row_loop;
+    }
+}
+
+//-----------------------------------------------------------------------------
+// MicroW8 entry point: called once on module load for initialization
+//-----------------------------------------------------------------------------
+export fn start() {
+    // Fill the sine lookup table
+    fillSinTable(SINE_TABLE_ADDR, SINE_TABLE_SIZE);
+
+    // Initial screen clear
+    cls(0);
+}
+
+//-----------------------------------------------------------------------------
+// MicroW8 entry point: called each frame to update the screen
+//-----------------------------------------------------------------------------
+export fn upd() {
+    // Clear the screen at the beginning of each frame
+    cls(0);
+
+    // Draw the two halves of the twister effect, covering all screen rows
+    draw_half_twister(0); // Draws on even rows (0, 2, 4, ...)
+
+    // Update animation offsets after drawing the first half, scaled by the speed factor
+    animationOffsetX += OFFSET_X_BASE_SPEED_1 * TWIST_SPEED_FACTOR;
+    animationOffsetY -= OFFSET_Y_BASE_SPEED_1 * TWIST_SPEED_FACTOR;
+
+    draw_half_twister(1); // Draws on odd rows (1, 3, 5, ...)
+
+    // Update animation offsets again after drawing the second half,
+    // matching the Pascal code's update logic within the same frame loop, scaled
+    animationOffsetX += OFFSET_X_BASE_SPEED_2 * TWIST_SPEED_FACTOR;
+    animationOffsetY -= OFFSET_Y_BASE_SPEED_2 * TWIST_SPEED_FACTOR;
+}
+
+//-----------------------------------------------------------------------------
+// Data section for the sine lookup table (will be filled by fillSinTable)
+//-----------------------------------------------------------------------------
+data SINE_TABLE_ADDR {
+    // Reserve space for 256 bytes. Initial values are not important as they are overwritten.
+    // Using i8 type with dummy values to reserve the memory.
+    i8(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+}

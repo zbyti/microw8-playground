@@ -1,0 +1,148 @@
+// MicroW8 CurlyWASM version of the MadPascal Twister effect (without LUT, improved dynamic)
+// Converted and modified by MicroW8 Developer
+// Target platform: MicroW8 fantasy console
+
+// Import necessary MicroW8 API functions
+import "env.memory" memory(4);
+import "env.cls" fn cls(i32);         // Clears the screen
+import "env.hline" fn hline(i32, i32, i32, i32); // Draws horizontal lines
+import "env.sin" fn sin(f32) -> f32;         // Computes the sine of an angle (in radians)
+import "env.fmod" fn fmod(f32, f32) -> f32; // Computes the floating-point remainder
+
+// Define constants for screen dimensions and effect parameters
+const SCREEN_WIDTH      = 320;
+const SCREEN_HEIGHT     = 240;
+const SCREEN_CENTER_X   = SCREEN_WIDTH / 2;   // 160
+const SCREEN_CENTER_Y   = SCREEN_HEIGHT / 2;  // 120
+const ANGLE_90          = 64;             // Phase offset for 90 degrees (out of 256 units)
+const ANGLE_180         = 128;            // Phase offset for 180 degrees (out of 256 units)
+const ANGLE_270         = 192;            // Phase offset for 270 degrees (out of 256 units)
+
+// Constants for base animation speeds (f32 for smoother scaling)
+const OFFSET_X_BASE_SPEED_1: f32 = 2.0;
+const OFFSET_Y_BASE_SPEED_1: f32 = 3.0;
+const OFFSET_X_BASE_SPEED_2: f32 = 3.0;
+const OFFSET_Y_BASE_BASE_SPEED_2: f32 = 2.0; // Poprawiona nazwa stałej
+// Zwiększona wartość dla testu animacji. Jeśli działa, zmniejszaj do pożądanej prędkości.
+const TWIST_SPEED_FACTOR: f32 = 0.5;
+
+// Global mutable variables for animation offsets (f32 for finer control)
+global mut animationOffsetX: f32 = 0.0;
+global mut animationOffsetY: f32 = 65.0; // Początkowa wartość z Pascala
+
+//-----------------------------------------------------------------------------
+// Function to draw one half of the twister effect (even or odd rows) without LUT
+// Implements nested sine calculation for better dynamic.
+//-----------------------------------------------------------------------------
+fn draw_half_twister_no_lut(y_start_offset: i32) {
+    // Loop through the vertical index (0-119) as in the Pascal code
+    let row = 0;
+    let screen_center_x_f: f32 = SCREEN_CENTER_X as f32;
+    let pi: f32 = 3.1415926535;
+    let angle_scale: f32 = (2.0 * pi) / 256.0; // Radians per phase unit (0-255)
+    let inner_sin_scale: f32 = 120.0; // Scaling for the result of the inner sine call
+    let amplitude_scale: f32 = 60.0; // Scaling factor for outer sine output to match original amplitude
+
+    loop row_loop {
+        // Calculate the current screen Y coordinate
+        let y = y_start_offset + row * 2;
+
+        // --- Inner Phase Calculation (mimics sine[row + animationOffsetY]) ---
+        // Calculate inner phase in 0-255 units (float)
+        let inner_phase_f = (row as f32) + animationOffsetY;
+        // Wrap inner phase around 256
+        let wrapped_inner_phase_f = fmod(inner_phase_f, 256.0);
+        let positive_wrapped_inner_phase_f = if wrapped_inner_phase_f < 0.0 { wrapped_inner_phase_f + 256.0 } else { wrapped_inner_phase_f };
+
+        // Convert wrapped inner phase to radians and calculate inner sine value
+        let inner_angle_rad = positive_wrapped_inner_phase_f * angle_scale;
+        let inner_sin_value = sin(inner_angle_rad); // Result is [-1.0, 1.0]
+
+        // Scale and offset inner sine value to be in a range similar to original LUT output (0-255 conceptually)
+        // This result conceptually acts as the 'sine[row + animationOffsetY]' byte value
+        let conceptual_phase_value_from_inner_sin = (inner_sin_value * inner_sin_scale) + 128.0; // Maps roughly [-120, 120] + 128 -> [8, 248]
+
+        // --- Outer Phase Calculation (mimics conceptual_phase_value + animationOffsetX) ---
+        // Calculate outer phase by adding animationOffsetX to the conceptual value from inner sine
+        let outer_phase_index_f = conceptual_phase_value_from_inner_sin + animationOffsetX;
+
+        // Wrap outer phase around 256
+        let wrapped_outer_phase_f = fmod(outer_phase_index_f, 256.0);
+         let positive_wrapped_outer_phase_f = if wrapped_outer_phase_f < 0.0 { wrapped_outer_phase_f + 256.0 } else { wrapped_outer_phase_f };
+
+
+        // --- Final Sine Lookups (mimics sine[angle], sine[angle+90], etc.) ---
+        // Convert outer phase and its offsets to radians and calculate final sine values
+        let angle_rad = positive_wrapped_outer_phase_f * angle_scale;
+        let angle_90_rad = fmod(positive_wrapped_outer_phase_f + ANGLE_90 as f32, 256.0) * angle_scale;
+        let angle_180_rad = fmod(positive_wrapped_outer_phase_f + ANGLE_180 as f32, 256.0) * angle_scale;
+        let angle_270_rad = fmod(positive_wrapped_outer_phase_f + ANGLE_270 as f32, 256.0) * angle_scale;
+
+        // Calculate final sine values and scale them to the desired amplitude for X coordinates
+        let sin_angle     = sin(angle_rad) * amplitude_scale;
+        let sin_angle_90  = sin(angle_90_rad) * amplitude_scale;
+        let sin_angle_180 = sin(angle_180_rad) * amplitude_scale;
+        let sin_angle_270 = sin(angle_270_rad) * amplitude_scale;
+
+        // Calculate the X coordinates for the four points and convert to i32
+        let x1 = (screen_center_x_f + sin_angle) as i32;
+        let x2 = (screen_center_x_f + sin_angle_90) as i32;
+        let x3 = (screen_center_x_f + sin_angle_180) as i32;
+        let x4 = (screen_center_x_f + sin_angle_270) as i32;
+
+        // Find the minimum and maximum X coordinates among the four points (same logic as before)
+        let minX = x1;
+        let maxX = x1;
+
+        if x2 < minX { minX = x2; } else if x2 > maxX { maxX = x2; }
+        if x3 < minX { minX = x3; } else if x3 > maxX { maxX = x3; }
+        if x4 < minX { minX = x4; } else if x4 > maxX { maxX = x4; }
+
+        // Draw horizontal lines using the hline function (same logic as before)
+        // hline(left: i32, right: i32, y: i32, color: i32) - right is exclusive
+        hline(minX - 6, minX + 1, y, 0); // Draw from minX-6 to minX (inclusive)
+        hline(maxX, maxX + 7, y, 0);     // Draw from maxX to maxX+6 (inclusive)
+
+        // Inner lines (colors 1, 2, 3, 4) with conditions
+        if x1 < x2 { hline(x1, x2 + 1, y, 1); } // Draw from x1 to x2 (inclusive)
+        if x2 < x3 { hline(x2, x3 + 1, y, 2); } // Draw from x2 to x3 (inclusive)
+        if x3 < x4 { hline(x3, x4 + 1, y, 3); } // Draw from x3 to x4 (inclusive)
+        if x4 < x1 { hline(x4, x1 + 1, y, 4); } // Draw from x4 to x1 (inclusive)
+
+        // Continue loop until all 120 vertical indices are processed
+        branch_if (row := row + 1) < 120: row_loop;
+    }
+}
+
+//-----------------------------------------------------------------------------
+// MicroW8 entry point: called once on module load for initialization
+//-----------------------------------------------------------------------------
+export fn start() {
+    // Initial screen clear
+    cls(0);
+}
+
+//-----------------------------------------------------------------------------
+// MicroW8 entry point: called each frame to update the screen
+//-----------------------------------------------------------------------------
+export fn upd() {
+    // Clear the screen at the beginning of each frame
+    cls(0);
+
+    // Draw the two halves of the twister effect, covering all screen rows
+    draw_half_twister_no_lut(0); // Draws on even rows (0, 2, 4, ...)
+
+    // Update animation offsets after drawing the first half, scaled by the speed factor
+    animationOffsetX += OFFSET_X_BASE_SPEED_1 * TWIST_SPEED_FACTOR;
+    animationOffsetY -= OFFSET_Y_BASE_SPEED_1 * TWIST_SPEED_FACTOR;
+
+    draw_half_twister_no_lut(1); // Draws on odd rows (1, 3, 5, ...)
+
+    // Update animation offsets again after drawing the second half, scaled
+    animationOffsetX += OFFSET_X_BASE_SPEED_2 * TWIST_SPEED_FACTOR;
+    animationOffsetY -= OFFSET_Y_BASE_BASE_SPEED_2 * TWIST_SPEED_FACTOR; // Poprawiona nazwa stałej
+}
+
+//-----------------------------------------------------------------------------
+// Data section is no longer needed for the sine table LUT
+//-----------------------------------------------------------------------------

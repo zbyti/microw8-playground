@@ -1,0 +1,74 @@
+import "env.memory" memory(4);
+import "env.cls" fn cls(i32);
+import "env.time" fn time() -> f32;
+import "env.sin" fn sin(f32) -> f32;
+import "env.cos" fn cos(f32) -> f32;
+import "env.rectangle" fn rectangle(f32, f32, f32, f32, i32);
+
+// Screen dimensions
+const SCREEN_WIDTH: i32 = 320;
+const SCREEN_HEIGHT: i32 = 240;
+
+// Bar properties
+const BAR_WIDTH: f32 = 10.0; // Width of each vertical bar
+const NUM_BARS: i32 = 30;    // Number of bars to draw
+
+// Base color for the bars (adjust as needed)
+const BASE_COLOR: i32 = 0xF0;
+
+// Animation speed
+const ANIM_SPEED: f32 = 2.0;
+
+// Vertical offset factor to create the snake effect
+const VERTICAL_OFFSET_FACTOR: f32 = 3.0;
+
+// Factor controlling the color gradient along the bars
+const COLOR_GRADIENT_FACTOR: i32 = 1;
+// Factor controlling the speed of the overall color pulsation
+const COLOR_PULSATION_SPEED: f32 = 5.0;
+
+export fn upd() {
+    // Clear the screen with black color
+    cls(0);
+
+    // Get the current time for animation
+    let current_time: f32 = time();
+
+    // Calculate a time-based color offset for overall pulsation
+    let time_color_offset: i32 = (sin(current_time * COLOR_PULSATION_SPEED) * 8.0) as i32; // Use sin for smooth pulsation
+
+    // Loop through each vertical bar
+    let i: i32 = 0;
+    loop bar_loop {
+        // Calculate the base horizontal position of the bar based on time and bar index
+        // Using sine wave for horizontal movement without LUT
+        let bar_base_x: f32 = (SCREEN_WIDTH as f32 / 2.0) +
+                             sin(current_time * ANIM_SPEED + (i as f32 * 0.1)) * (SCREEN_WIDTH as f32 / 3.0);
+
+        // Calculate the actual horizontal position (top-left corner)
+        let bar_x: f32 = bar_base_x - (BAR_WIDTH / 2.0);
+
+        // Calculate the starting vertical position (y) for the bar
+        // This creates the "snake" effect by offsetting bars based on their index (simulated distance)
+        let bar_y: f32 = (i as f32 * VERTICAL_OFFSET_FACTOR);
+
+        // Calculate the height of the rectangle from the starting y to the bottom of the screen
+        let bar_height: f32 = (SCREEN_HEIGHT as f32) - bar_y;
+
+        // Calculate bar color based on index (gradient) and combined with time offset (pulsation)
+        // Ensure color index stays within palette range (0-15)
+        let bar_color_index: i32 = (i * COLOR_GRADIENT_FACTOR + time_color_offset) % 16;
+        // Handle potential negative result from modulo with negative numbers
+        if bar_color_index < 0 {
+            bar_color_index = bar_color_index + 16;
+        }
+        let bar_color: i32 = BASE_COLOR + bar_color_index;
+
+        // Draw the vertical bar as a filled rectangle
+        // rectangle(x, y, width, height, color)
+        rectangle(bar_x, bar_y, BAR_WIDTH, bar_height, bar_color);
+
+        // Move to the next bar
+        branch_if (i := i + 1) < NUM_BARS: bar_loop;
+    }
+}

@@ -1,0 +1,42 @@
+// Import MicroW8 API modules
+import "env.memory" memory(4);
+import "env.setPixel" fn setPixel(i32, i32, i32);
+import "env.cls" fn cls(i32);
+import "env.line" fn line(f32, f32, f32, f32, i32);
+
+// Define constants for triangle size and offsets
+const SIZE: i32 = 240; // Triangle size
+const OFFSET_X: i32 = 40; // X axis offset
+const OFFSET_Y: i32 = 10; // Y axis offset
+
+// Global variable for color pulsation control
+global mut color_offset: i32 = 0;
+
+// Function to draw Sierpiński triangle
+fn draw_triangle(x: f32, y: f32, size: f32) {
+    if size > 1.0 {
+        let h = size * 0.866; // Triangle height (sqrt(3)/2 ≈ 0.866)
+        let color = 0xF0 + color_offset; // Calculate current color
+
+        // Draw the triangle
+        line(x, y, x + size / 2.0, y + h, color);
+        line(x + size / 2.0, y + h, x - size / 2.0, y + h, color);
+        line(x - size / 2.0, y + h, x, y, color);
+
+        // Recursively draw smaller triangles
+        draw_triangle(x, y, size / 2.0);
+        draw_triangle(x + size / 4.0, y + h / 2.0, size / 2.0);
+        draw_triangle(x - size / 4.0, y + h / 2.0, size / 2.0);
+    }
+}
+
+// Main screen update function
+export fn upd() {
+    cls(0); // Clear screen
+
+    // Update pulsating color
+    color_offset = (color_offset + 1) % 16;
+
+    // Draw Sierpiński triangle
+    draw_triangle(120.0, 10.0, SIZE as f32);
+}

@@ -1,0 +1,152 @@
+include "../include/microw8-api.cwa"
+
+// Display configuration constants
+const SCALE = 2;           // Text scaling factor (original font is 8x8 pixels)
+const COLOR_WHITE = 0xF8;  // White in MicroW8's RGB palette - Defined, but main text color is dynamic now
+const COLOR_BLACK = 0x00;  // Black color
+
+// Screen dimensions (dual representation for integer/float APIs)
+const SCR_X = 320;         // Screen width in pixels (i32 for integer operations)
+const SCR_Y = 240;         // Screen height in pixels (i32)
+const SCR_X_F = 320.0;     // Screen width (f32 for floating-point functions)
+const SCR_Y_F = 240.0;     // Screen height (f32)
+
+// Text rendering parameters
+const CHAR_BASE_SIZE = 8;  // Original character size in pixels
+const CHAR_SIZE = CHAR_BASE_SIZE * SCALE;     // Effective character size after scaling
+const X_START = SCR_X;     // Initial X position (right edge of the screen)
+const Y_CENTER = SCR_Y / 2 - CHAR_SIZE / 2; // Centered vertically for sine wave axis
+const X_END = -CHAR_SIZE;  // Character is fully off the left edge
+
+// Sine wave parameters (Wave 1)
+const AMPLITUDE1 = 45.0; // Amplitude of the first sine wave (in pixels)
+const FREQUENCY1 = 0.07; // Frequency of the first sine wave (adjust for more or less waves)
+const TIME_SCALE1 = 1.5; // Speed of the first wave animation
+
+// Sine wave parameters (Wave 2)
+const AMPLITUDE2 = 10.0; // Amplitude of the second sine wave
+const FREQUENCY2 = 0.08; // Frequency of the second sine wave
+const TIME_SCALE2 = 2.5; // Speed of the second wave animation
+
+// Color Cycling parameters
+const COLOR_FREQ = 0.1;   // Frequency of color change along the text
+const COLOR_SPEED = 0.8;  // Speed of color cycling animation
+const COLOR_RANGE = 16.0; // <--- Zakres 16 kolorów (od 0xf0 do 0xff)
+const COLOR_BASE = 0xf0;  // <--- Baza kolorów (0xf0)
+
+// Memory addresses for text data (USER_MEM starts at 0x14000)
+const TEXT = USER_MEM + 11; // Start address of the text string in USER_MEM
+
+// Animation state variables
+global mut scroll_x = SCR_X; // Current global X position of the text block
+global mut text_start_offset = 0; // Offset to the first character being displayed
+
+// Initialization function (runs once at startup)
+export fn start() {
+    // Execute initialization sequence from USER_MEM.
+    // This processes the control codes in the data block (clear screen, set mode/scale/color).
+    // Note: The initial set color control code will be overridden by setTextColor in upd()
+    printString(USER_MEM);
+}
+
+// Main update loop (runs every frame)
+export fn upd() {
+    // Clear screen without flicker (using rectangle instead of cls)
+    rectangle(0.0, 0.0, SCR_X_F, SCR_Y_F, COLOR_BLACK);
+
+    let current_time = time(); // Get current time for animation
+    let char_index = 0; // Index of the character being drawn in the current visible segment
+
+    loop draw_loop {
+        // Calculate the index in the original text string
+        let text_buffer_index = text_start_offset + char_index;
+
+        // Check for null terminator in the text buffer or limit characters drawn
+        if (TEXT + text_buffer_index)?0 == 0 {
+             // End of text or wrapped around, exit loop by not branching back
+        } else if char_index * CHAR_SIZE > SCR_X + CHAR_SIZE * 2 {
+             // Limit the number of characters drawn, exit loop by not branching back
+        } else {
+            // Get the current character
+            let current_char = (TEXT + text_buffer_index)?0;
+
+            // Calculate the character's horizontal position based on the global scroll_x
+            let char_x = scroll_x + char_index * CHAR_SIZE;
+
+            // Calculate sine wave vertical offset by summing two waves
+            let wave1 = sin((char_x as f32 * FREQUENCY1 + current_time * TIME_SCALE1)) * AMPLITUDE1;
+            let wave2 = sin((char_x as f32 * FREQUENCY2 + current_time * TIME_SCALE2)) * AMPLITUDE2;
+            let sine_y_offset = wave1 + wave2;
+
+            // Calculate the character's vertical position with the combined sine offset
+            let char_y = Y_CENTER as f32 + sine_y_offset;
+
+            // Calculate color index based on horizontal position and time
+            // Use fmod to ensure the color_phase cycles within COLOR_RANGE
+            let color_phase = fmod((char_x as f32 * COLOR_FREQ + current_time * COLOR_SPEED), COLOR_RANGE);
+            let color_index = COLOR_BASE + (color_phase as i32);
+
+             // Note: Depending on fmod implementation for negative numbers and COLOR_RANGE,
+             // a clamp like max(0, min(255, color_index)) might be safer, but for this
+             // specific range (0xf0 to 0xff) it's likely fine.
+
+            // Only draw characters that are potentially visible on screen
+            if char_x + CHAR_SIZE > 0 & char_x < SCR_X {
+                // Set text color for the current character
+                setTextColor(color_index);
+                // Set cursor position in graphics mode (pixel coordinates) and print the single character
+                setCursorPosition(char_x, char_y as i32);
+                printChar(current_char);
+            }
+
+            // Move to the next character in the visible segment
+            char_index += 1;
+
+            // Continue the drawing loop by branching back to the start
+            branch draw_loop;
+        }
+        // If the 'else' block was not entered (due to null terminator or limit),
+        // the flow falls through here, exiting the loop.
+    }
+    // Code after the draw_loop (loop exits here)
+
+    // Update the global scroll position
+    scroll_x -= 2; // Scroll speed (adjust as needed)
+
+    // Check if the first character is off screen
+    if scroll_x + CHAR_SIZE < 0 {
+        // Move the scroll position back by one character width
+        scroll_x += CHAR_SIZE;
+        // Advance the starting character offset in the text buffer
+        text_start_offset += 1;
+    }
+
+    // Handle text wrap-around (reset if null terminator is the first character of the current segment)
+    if (TEXT + text_start_offset)?0 == 0 {
+        scroll_x = SCR_X;    // Reset global X position to the right edge
+        text_start_offset = 0; // Reset text offset to the beginning of the string
+    }
+}
+
+// Initial Y position for text block (as in original code) - used in the data block's control sequence
+const Y_START = SCR_Y / 2 - CHAR_SIZE;
+
+// Memory initialization data
+data USER_MEM {
+    // Initialization control sequence:
+    i8(12, 5, 30, SCALE)  // cls, graphics mode, text scale
+    i8(15, COLOR_WHITE)   // text color - This initial color is overridden by setTextColor in upd()
+    i8(0)             // sequence terminator
+
+    // Text position control sequence:
+    // This sequence sets the initial cursor position using control code 31.
+    // It is processed by the printString(USER_MEM) call in start().
+    // Although the drawing logic in upd() calculates position dynamically,
+    // this data is part of the USER_MEM block structure.
+    i8(31, X_START, Y_START)  // set cursor, X, Y
+    i8(0)             // sequence terminator
+
+    // Scroll text content (null-terminated):
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+    i8(0) // string terminator
+}

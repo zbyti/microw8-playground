@@ -1,0 +1,81 @@
+// Interference effect ported to MicroW8
+// Original code in AssemblyScript/WASM by Colin Eberhardt's and Ben Smith's
+// https://www.assemblyscript.org/examples/interference.html
+// Ported to CurlyWASM by MicroW8 Developer (Gem Gemini 2.5 Flash)
+
+// Include MicroW8 API functions
+include "../include/microw8-api.cwa"
+
+// Screen dimensions
+const SCREEN_WIDTH: i32 = 320;
+const SCREEN_HEIGHT: i32 = 240;
+
+// Base color index for the interference pattern
+const BASE_COLOR: i32 = 0xf0;
+// Number of colors to use from the palette (0xf0 to 0xff is 16 colors)
+const COLOR_RANGE: i32 = 16;
+
+
+// --- Functions ---
+
+// Computes the distance between two points (x1, y1) and (x2, y2)
+fn distance(x1: i32, y1: i32, x2: f32, y2: f32) -> f32 {
+    let dx: f32 = x1 as f32 - x2;
+    let dy: f32 = y1 as f32 - y2;
+    // Return value is the last expression in the block
+    sqrt(dx * dx + dy * dy)
+}
+
+// Main update function called each frame
+export fn upd() {
+    // Clear the screen with black color (color index 0)
+    cls(0);
+
+    // Get the current time for animation in seconds
+    let tick: f32 = time();
+
+    // Calculate half dimensions for centering
+    let w: f32 = SCREEN_WIDTH as f32;
+    let h: f32 = SCREEN_HEIGHT as f32;
+    let hw: f32 = w * 0.5;
+    let hh: f32 = h * 0.5;
+
+    // Calculate the positions of the two interference sources based on time
+    // Using sin and cos functions from MicroW8 API
+    let cx1: f32 = (sin(tick * 2.0) + sin(tick)) * hw * 0.3 + hw;
+    let cy1: f32 = (cos(tick)) * hh * 0.3 + hh;
+    let cx2: f32 = (sin(tick * 4.0) + sin(tick + 1.2)) * hw * 0.3 + hw;
+    let cy2: f32 = (sin(tick * 3.0) + cos(tick + 0.1)) * hh * 0.3 + hh;
+
+    // Calculate a resolution factor for the interference pattern
+    // Using max function from MicroW8 API or built-in
+    let res: f32 = 48.0 / max(w, h);
+
+    // Loop through each pixel on the screen
+    let y: i32 = 0;
+    loop y_loop {
+        let x: i32 = 0;
+        loop x_loop {
+            // Calculate interference value
+            let d1: f32 = distance(x, y, cx1, cy1);
+            let d2: f32 = distance(x, y, cx2, cy2);
+            // Using abs function from MicroW8 API or built-in
+            // Normalize the sum of sines (which is between -2 and 2) to a 0-1 range
+            // Then multiply by COLOR_RANGE (16) to get a value between 0 and 15
+            let interference_val: f32 = abs(sin(d1 * res) + sin(d2 * res)) * (COLOR_RANGE as f32 / 2.0);
+
+
+            // Map interference value to an 8-bit color index
+            // Add the base color index (0xf0) to the scaled interference value
+            let color: i32 = BASE_COLOR + (interference_val as i32);
+
+            // Set the pixel color using MicroW8 API
+            setPixel(x, y, color);
+
+            // Move to the next column
+            branch_if (x := x + 1) < SCREEN_WIDTH: x_loop;
+        }
+        // Move to the next row
+        branch_if (y := y + 1) < SCREEN_HEIGHT: y_loop;
+    }
+}
