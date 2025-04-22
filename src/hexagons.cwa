@@ -1,0 +1,145 @@
+/*
+    Orginal code : BBC Micro Model B - Hexagons
+    MicroW8 port : zbyti
+
+    https://bbcmic.ro/?t=8TRRa
+*/
+
+//=============================================================================
+
+include "../include/common.cwa"
+
+// GEOMETRIC CONSTANTS
+const R = 128.0;                    // hexagon radius (128)
+const D = 2.0 * R;                  // hexagon diameter (2*R)
+const S = R * 1.732050808;          // row height (R * √3)
+const SCALE_FACTOR = 1.0;           // scaling factor
+const K = 262144.0 / SCALE_FACTOR;  // projection constant (512^2)
+const V = 30;
+const H = 30;
+
+const BASE_COLOR = 0xF0;
+
+//-----------------------------------------------------------------------------
+
+export fn start() {
+    let v = -V;
+    loop v {
+        let h = -H;
+        loop h {
+            let inline color = BASE_COLOR + abs(((v * h) / 4) as f32) as i32 % 3;
+            let l = -PI;
+            loop l {
+                let inline sin_xy2 = sin(l + PI / 3.0);
+                let inline cos_xy2 = cos(l + PI / 3.0);
+
+                let inline a_comp = R + ((v & 1) as f32) * R + (h as f32) * D;
+                let inline b_comp = (v as f32) * S;
+
+                let inline a1 = a_comp + R * sin(l);
+                let inline b1 = b_comp + R * cos(l);
+                let inline a2 = a_comp + R * sin_xy2;
+                let inline b2 = b_comp + R * cos_xy2;
+
+                let inline c1 = K / (a1 * a1 + b1 * b1);
+                let inline c2 = K / (a2 * a2 + b2 * b2);
+
+                // line(x1, y1, x2, y2, color);
+                line(
+                    (b1 * c1) + CENTER_X_F, (a1 * c1) + CENTER_Y_F,
+                    (b2 * c2) + CENTER_X_F, (a2 * c2) + CENTER_Y_F,
+                    color
+                );
+                branch_if (l +:= PI / 3.0) < PI : l;
+            }
+            branch_if (h +:= 1) <= H: h;
+        }
+        branch_if (v +:= 1) <= V: v;
+    }
+
+}
+
+export fn upd() {
+    // Your update code here
+}
+
+//=============================================================================
+
+/*
+orginal code
+
+```basic
+MO.1:V.29,640;511;19,3,5;0;19,1,6;0;19,2,3;0;5
+R=128:D=2*R:S=R*SQR3
+K=1024^2
+FORV=-20TO20
+FORH=-19TO18
+GCOL0,1+ABS(V*H/4)MOD3
+FORL=-PI TOPI STEPPI/3
+A=R+(1ANDV)*R+H*D+SINL*R
+B=V*S+COSL*R
+C=K/(A*A+B*B)
+PLOT5+(L=-PI),B*C,A*C
+N.,,
+V.1
+```
+
+Gemini 2.5 Flash unpack
+
+```basic
+REM Program drawing a grid of hexagons
+REM *** CONSTANTS ***
+REM Graphics mode and color definitions (specific to BBC Micro)
+MODE 1 : VDU 29, 640; 511; 19, 3, 5; 0; 19, 1, 6; 0; 19, 2, 3; 0; 5
+REM Sets graphics mode 1 (320x256 pixels)
+REM VDU 29, x; y; is a command to move the logical origin of the coordinate system (0,0)
+
+REM *** GEOMETRIC CONSTANTS ***
+R = 128        : REM Hexagon radius (constant)
+D = 2 * R      : REM Hexagon diameter (2*R) (constant)
+S = R * SQR(3) : REM Row height of hexagons (R * √3) (constant)
+K = 1024 ^ 2   : REM Constant used in projection calculations (constant)
+
+REM *** MAIN LOOP VARIABLES ***
+FOR V = -20 TO 20   : REM Row loop variable
+  FOR H = -19 TO 18 : REM Column loop variable
+    REM *** COLOR VARIABLE ***
+    GCOL 0, 1 + ABS(V * H / 4) MOD 3 : REM Color selection (variable)
+
+    REM *** ANGLE VARIABLE ***
+    FOR L = -PI TO PI STEP PI / 3 : REM Vertex angles of the hexagon (variable)
+      REM *** CALCULATION VARIABLES ***
+      A = R + (1 AND V) * R + H * D + SIN(L) * R : REM X coordinate (variable)
+      B = V * S + COS(L) * R                     : REM Y coordinate (variable)
+      C = K / (A * A + B * B)                    : REM Projection coordinate (variable)
+
+      REM Drawing a point or line
+      PLOT 5 + (L = -PI), B * C, A * C
+    NEXT L
+  NEXT H
+NEXT V
+
+VDU 1 : REM Enables standard screen output
+```
+
+```markdown
+### Summary of constants and variables:
+
+**CONSTANTS** (unchanged during program execution):
+- `R` - hexagon radius (128)
+- `D` - hexagon diameter (2*R)
+- `S` - row height (R * √3)
+- `K` - projection constant (1024^2)
+- `PI` - mathematical constant π
+- Values in `VDU` and `MODE` commands (graphics settings)
+
+**VARIABLES** (changing value during execution):
+- `V` - row iterator (from -20 to 20)
+- `H` - column iterator (from -19 to 18)
+- `L` - current vertex angle (from -π to π with step π/3)
+- `A`, `B` - local point coordinates
+- `C` - projection coefficient
+- Result of expression `1 + ABS(V * H / 4) MOD 3` (color)
+- Result of expression `5 + (L = -PI)` (drawing mode)
+```
+*/

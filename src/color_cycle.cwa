@@ -1,0 +1,97 @@
+// Original BBC Micro BASIC code https://bbcmic.ro/?t=bcbTP
+// Converted to CurlyWASM for MicroW8 by MicroW8 Developer (Gemini Gem 2.5 Flash)
+
+// Import necessary MicroW8 API functions and memory
+import "env.memory" memory(4);
+import "env.cls" fn cls(i32);
+import "env.setPixel" fn setPixel(i32, i32, i32);
+import "env.time" fn time() -> f32;
+import "env.sin" fn sin(f32) -> f32;
+import "env.cos" fn cos(f32) -> f32;
+import "env.fmod" fn fmod(f32, f32) -> f32;
+
+// Constants for screen dimensions and memory addresses
+const SCREEN_WIDTH: i32 = 320;
+const SCREEN_HEIGHT: i32 = 240;
+const CENTER_X: f32 = 160.0;  // Screen center X coordinate
+const CENTER_Y: f32 = 120.0;  // Screen center Y coordinate
+const PALETTE_ADDRESS: i32 = 0x13000; // Memory address for color palette storage
+
+// Controls how fast the palette colors cycle
+// Adjust this value before compilation to change animation speed
+// Higher value = faster color cycling
+const PALETTE_ANIMATION_SPEED: f32 = 1.0;
+
+// Initialization function called once at startup
+export fn start() {
+    // Initialize the color palette with a simple gradient
+    // MicroW8 uses 32-bit RGBA colors (though alpha is often ignored)
+    // We'll store colors directly in memory at PALETTE_ADDRESS
+    let i: i32 = 0;
+    loop palette_init_loop {
+        // Calculate RGB components based on palette index
+        let r: i32 = (i * 10) & 255; // Red component
+        let g: i32 = (i * 15) & 255; // Green component
+        let b: i32 = (i * 20) & 255; // Blue component
+        // Pack into 32-bit color value (RGBA format, A=0)
+        let color_value: i32 = (b << 16) | (g << 8) | r;
+
+        // Store color in palette memory (4 bytes per color)
+        (PALETTE_ADDRESS + i * 4)!0 = color_value;
+
+        branch_if (i +:= 1) < 256: palette_init_loop; // Fill all 256 palette entries
+    }
+
+    // Draw static pattern - concentric circles based on distance from center
+    // This is drawn once during initialization
+    let y: i32 = 0;
+    loop y {
+        let x: i32 = 0;
+        loop x {
+            // Calculate distance from screen center
+            let dx: f32 = x as f32 - CENTER_X;
+            let dy: f32 = y as f32 - CENTER_Y;
+            let distance: f32 = sqrt(dx * dx + dy * dy);
+
+            // Map distance to color index (0-255)
+            // Using modulo to create repeating circular pattern
+            let color_index_f: f32 = fmod(distance * 0.5, 256.0);
+            let color_index: i32 = color_index_f as i32;
+
+            // Set pixel with calculated color index
+            setPixel(x, y, color_index & 255); // Ensure index stays within 0-255
+
+            branch_if (x +:= 1) < SCREEN_WIDTH: x;
+        }
+        branch_if (y +:= 1) < SCREEN_HEIGHT: y;
+    }
+}
+
+// Update function - handles animation
+export fn upd() {
+    // Animate the palette by shifting colors
+
+    // Calculate current shift amount (wrapped to 0-255 range)
+    let inline shift_index: i32 = (fmod(PALETTE_ANIMATION_SPEED, 256.0)) as i32;
+
+    // Shift all colors in the palette
+    let i: i32 = 0;
+    loop palette_animate_loop {
+        // Calculate source index with wrapping
+        let source_index: i32 = (i + shift_index) & 255;
+
+        // Read color from original position
+        let color_value: i32 = (PALETTE_ADDRESS + source_index * 4)!0;
+
+        // Write to new position to create shifting effect
+        (PALETTE_ADDRESS + i * 4)!0 = color_value;
+
+        branch_if (i +:= 1) < 256: palette_animate_loop;
+    }
+
+    // Note: We don't need to redraw the pattern each frame because:
+    // 1. The framebuffer retains our initial drawing
+    // 2. We're only changing the color palette, which affects how existing
+    //    pixels are displayed
+    // 3. MicroW8 automatically displays the framebuffer each frame
+}
