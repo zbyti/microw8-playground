@@ -94,6 +94,7 @@ when using the native runtime:
 --no-gpu                : Force old cpu-only window code
 --filter FILTER         : Select an upscale filter at startup
 --fullscreen            : Start in fullscreen mode
+--fps                   : Show FPS (STDOUT)
 
 Note that the cpu-only window does not support fullscreen nor upscale filters.
 
